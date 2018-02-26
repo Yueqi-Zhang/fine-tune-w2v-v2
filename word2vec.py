@@ -92,25 +92,25 @@ class Word2Vec:
             batch_v = [pair[2] for pair in batch_pairs]
             batch_v_pad, batch_v_mask = V_Pad(batch_pairs, self.window_size)
             batch_vsp = Get_VSP(batch_u, batch_n, batch_v)
-            batch_vsp_pad, batch_vsp_mask = VSP_Pad(batch_vsp, self.window_size, self.batch_size)
+            #batch_vsp_pad, batch_vsp_mask = VSP_Pad(batch_vsp, self.window_size, self.batch_size)
 
             batch_u = Variable(torch.LongTensor(batch_u))
             batch_n = Variable(torch.LongTensor(batch_n))
             batch_v_pad = Variable(torch.LongTensor(batch_v_pad))
-            batch_v_mask = Variable(torch.LongTensor(batch_v_mask))
-            batch_vsp_pad = Variable(torch.LongTensor(batch_vsp_pad))
-            batch_vsp_mask = Variable(torch.LongTensor(batch_vsp_mask))
+            batch_v_mask = Variable(torch.FloatTensor(batch_v_mask))
+            batch_vsp = Variable(torch.LongTensor(batch_vsp))
+            #batch_vsp_mask = Variable(torch.LongTensor(batch_vsp_mask))
 
             if self.use_cuda:
                 batch_u = batch_u.cuda()
                 batch_n = batch_n.cuda()
                 batch_v_pad = batch_v_pad.cuda()
                 batch_v_mask = batch_v_mask.cuda()
-                batch_vsp_pad = batch_vsp_pad.cuda()
-                batch_vsp_mask = batch_vsp_mask.cuda()
+                batch_vsp = batch_vsp.cuda()
+                #batch_vsp_mask = batch_vsp_mask.cuda()
 
             self.optimizer.zero_grad()
-            loss = self.fine_tune_model.forward(batch_u, batch_n, batch_v_pad, batch_v_mask, batch_vsp_pad, batch_vsp_mask)
+            loss = self.fine_tune_model.forward(batch_u, batch_n, batch_v_pad, batch_v_mask, batch_vsp)
             loss.backward()
             torch.nn.utils.clip_grad_norm(self.fine_tune_model.parameters(), self.clip)
             self.optimizer.step()

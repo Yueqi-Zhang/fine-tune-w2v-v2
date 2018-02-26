@@ -2,12 +2,31 @@ from gensim.models import KeyedVectors
 import codecs
 
 def Topfreq(freqence):
+    """计算出语料库里面最高频的1W个词
+
+    Args:
+        freqence:
+
+    Returns:
+
+    """
     sortd = sorted(freqence.items(), key=lambda x: x[1], reverse=True)
     sortd = sortd[:10000]
     tf = [x for x, y in sortd]
     return tf
 
 def KNeighbor(file_name, words, word2id, id2word):
+    """计算高频词里面每个词的K近邻
+
+    Args:
+        file_name:
+        words:
+        word2id:
+        id2word:
+
+    Returns:
+
+    """
     vectors = KeyedVectors.load_word2vec_format(file_name, binary=False)
     neighbor = dict()
     for word in words:
@@ -18,6 +37,17 @@ def KNeighbor(file_name, words, word2id, id2word):
     return neighbor
 
 def Get_pairs(data, ids, neighbor, window_size):
+    """从语料库里面得到pairs：  Wc (center), Wt (tihuan), [context words...]
+
+    Args:
+        data:
+        ids:
+        neighbor:
+        window_size:
+
+    Returns:
+
+    """
     pairs = []
     word_count = len(data.word2id)
     file_name = data.input_file_name
@@ -72,18 +102,9 @@ def V_Pad(batch_pairs, window_size):
         if len(c) < 2*window_size:
             c_n = list(c) + [0]*(2*window_size-len(c))
             m = [1]*len(c) + [0]*(2*window_size-len(c))
+        else:
+            c_n = list(c)
         batch_v.append(c_n)
         mask.append(m)
-    return batch_v, m
+    return batch_v, mask
 
-def VSP_Pad(batch_vsp, window_size, batch_size):
-    batch_vsp_n = []
-    mask = []
-    size = 2*window_size+2+batch_size
-    for l in batch_vsp:
-        if len(l) < size:
-            l_n = l + [0]*(size-len(l))
-            m = [1]*len(l) + [0]*size
-        batch_vsp_n.append(l_n)
-        mask.append(m)
-    return batch_vsp_n, mask

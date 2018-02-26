@@ -25,6 +25,14 @@ class InputData:
         print('Sentence Length: %d' % (self.sentence_length))
 
     def get_words(self, min_count):
+        """
+
+        Args:
+            min_count:
+
+        Returns:
+
+        """
         self.input_file = open(self.input_file_name)
         self.sentence_length = 0
         self.sentence_count = 0
