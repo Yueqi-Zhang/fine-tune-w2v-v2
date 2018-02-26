@@ -1,6 +1,6 @@
 from input_data import InputData
 from input_data import InputVector
-from utils import Topfreq, KNeighbor, Get_pairs, Batch_pairs, Get_VSP, V_Pad, VSP_Pad
+from utils import Topfreq, KNeighbor, Get_pairs, Batch_pairs, Get_VSP, V_Pad
 import numpy
 from model import FineTuneModel
 from torch.autograd import Variable
