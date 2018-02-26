@@ -104,6 +104,7 @@ def V_Pad(batch_pairs, window_size):
             m = [1]*len(c) + [0]*(2*window_size-len(c))
         else:
             c_n = list(c)
+            m = [1]*len(c)
         batch_v.append(c_n)
         mask.append(m)
     return batch_v, mask
