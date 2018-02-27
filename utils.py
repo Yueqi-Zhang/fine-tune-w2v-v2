@@ -1,5 +1,6 @@
 from gensim.models import KeyedVectors
 import codecs
+import random
 
 def Topfreq(freqence):
     """计算出语料库里面最高频的1W个词
@@ -79,12 +80,13 @@ def Get_pairs(data, ids, neighbor, window_size):
                         pairs.append((u, n, tuple(c))) # u:center word, n:neighbor, v:context
     return pairs
 
-def Batch_pairs(pairs, batch_size, i, iteration):
+def Batch_pairs(pairs, batch_size):
+    length = len(pairs)
+    a = [random.randint(0, length-1) for i in range(batch_size)]
     pairs_n = []
-    for iter in range(iteration):
-        for pair in pairs:
-            pairs_n.append(pair)
-    return pairs_n[i*batch_size:(i+1)*batch_size]
+    for index in a:
+        pairs_n.append(pairs[index])
+    return pairs_n
 
 def Get_VSP(w1, w2, w3):
     w1 = set(w1)
