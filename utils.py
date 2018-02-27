@@ -2,7 +2,6 @@ from gensim.models import KeyedVectors
 import codecs
 import random
 import os
-import debugger
 import re
 import tqdm
 
@@ -140,7 +139,8 @@ def get_preprocessed_pairs(pair_dir):
     """
     pairs = []
     pair_file_paths = dir_traversal(pair_dir)
-    for pair_file_path in pair_file_paths:
+    print('Starting to get pairs from preprocessed dir...')
+    for pair_file_path in tqdm.tqdm(pair_file_paths):
         if os.path.basename(pair_file_path).startswith('pair_'):
             with codecs.open(pair_file_path, 'r', encoding='utf-8') as fin:
                 for line in fin:

@@ -70,14 +70,17 @@ class Word2Vec:
         with codecs.open(input_word2id, 'r', encoding='utf-8') as f:
             for lines in f:
                 self.word2id[lines.strip().split()[0]] = int(lines.strip().split()[1])
+        print('word2id got!')
         self.id2word = dict()
         with codecs.open(input_id2word, 'r', encoding='utf-8') as f:
             for lines in f:
                 self.id2word[int(lines.strip().split()[0])] = lines.strip().split()[1]
+        print('id2word got!')
         self.topfrequent = []
         with codecs.open(input_topfrequent, 'r', encoding='utf-8') as f:
             for lines in f:
                 self.topfrequent.append(int(lines.strip()))
+        print('topfrequent got!')
 
         #self.topfrequent = Topfreq(self.data.word_frequency)
         #self.kneighbor = KNeighbor(input_wvectors, self.topfrequent, self.data.word2id, self.data.id2word)
@@ -107,7 +110,11 @@ class Word2Vec:
         # self.skip_gram_model.save_embedding(
         #     self.data.id2word, 'begin_embedding.txt', self.use_cuda)
         tot_loss = 0
+        i = 0
         for i in process_bar:
+        #for epoch in range(self.iteration):
+        #while True:
+            #i += 1
             #pos_pairs = self.data.get_batch_pairs(self.batch_size,
                                                   #self.window_size)
             #batch_pairs = Batch_pairs(pro_pairs, self.batch_size, i, self.iteration)
@@ -167,9 +174,9 @@ if __name__ == '__main__':
     parser.add_argument('input_word2id', type=str)
     parser.add_argument('input_id2word', type=str)
     parser.add_argument('input_topfrequent', type=str)
-    parser.add_argument('--batch_size', type=int, default=50)
+    parser.add_argument('--batch_size', type=int, default=128)
     parser.add_argument('--window_size', type=int, default=5)
-    parser.add_argument('--iteration', type=int, default=20)
+    parser.add_argument('--iteration', type=int, default=1)
     parser.add_argument('--min_count', type=int, default=30)
     parser.add_argument('--initial_lr', type=float, default=0.025)
     args, _ = parser.parse_known_args()
