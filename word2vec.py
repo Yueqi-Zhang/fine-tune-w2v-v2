@@ -10,6 +10,8 @@ import torch.optim as optim
 from tqdm import tqdm
 import sys
 import argparse
+from utils import get_preprocessed_pairs
+import codecs
 
 class Word2Vec:
     def __init__(self,
@@ -17,6 +19,10 @@ class Word2Vec:
                  input_wvectors,
                  input_cvectors,
                  output_file_name,
+                 preprocessed_pair_dir,
+                 input_word2id,
+                 input_id2word,
+                 input_topfrequent,
                  emb_dimension=100,
                  batch_size=50,
                  window_size=5,
@@ -25,7 +31,8 @@ class Word2Vec:
                  min_count=30,
                  p = 0.0,
                  sigma = 1e-9,
-                 clip = 1.0):
+                 clip = 1.0
+                 ):
         """Initilize class parameters.
 
         Args:
@@ -47,6 +54,8 @@ class Word2Vec:
         self.input_wvect = InputVector(input_wvectors)
         self.input_cvect = InputVector(input_cvectors)
         self.output_file_name = output_file_name
+        self.preprocessed_pair_dir = preprocessed_pair_dir
+
         self.emb_size = len(self.data.word2id)
         self.emb_dimension = emb_dimension
         self.batch_size = batch_size
@@ -56,8 +65,23 @@ class Word2Vec:
         self.p = p
         self.sigma = sigma
         self.clip = clip
-        self.topfrequent = Topfreq(self.data.word_frequency)
-        self.kneighbor = KNeighbor(input_wvectors, self.topfrequent, self.data.word2id, self.data.id2word)
+
+        self.word2id = dict()
+        with codecs.open(input_word2id, 'r', encoding='utf-8') as f:
+            for lines in f:
+                self.word2id[lines.strip().split()[0]] = int(lines.strip().split()[1])
+        self.id2word = dict()
+        with codecs.open(input_id2word, 'r', encoding='utf-8') as f:
+            for lines in f:
+                self.id2word[int(lines.strip().split()[0])] = lines.strip().split()[1]
+        self.topfrequent = []
+        with codecs.open(input_topfrequent, 'r', encoding='utf-8') as f:
+            for lines in f:
+                self.topfrequent.append(int(lines.strip()))
+
+        #self.topfrequent = Topfreq(self.data.word_frequency)
+        #self.kneighbor = KNeighbor(input_wvectors, self.topfrequent, self.data.word2id, self.data.id2word)
+        self.kneighbor = KNeighbor(input_wvectors, self.topfrequent, self.word2id, self.id2word)
         self.fine_tune_model = FineTuneModel(self.emb_size, self.emb_dimension, self.p, self.sigma)
         self.fine_tune_model.init_emb(self.input_wvect, self.input_cvect)
         self.use_cuda = torch.cuda.is_available()
@@ -73,7 +97,9 @@ class Word2Vec:
             None.
         """
         #pair_count = self.data.evaluate_pair_count(self.window_size)
-        pro_pairs = Get_pairs(self.data, self.topfrequent, self.kneighbor, self.window_size)
+        #pro_pairs = Get_pairs(self.data, self.topfrequent, self.kneighbor, self.window_size)
+        pro_pairs = get_preprocessed_pairs(self.preprocessed_pair_dir)
+
         #vsp_pairs = Get_VSP(self.input_wvect, self.topfrequent, rho=self.rho)
         pair_count = len(pro_pairs)
         batch_count = self.iteration * pair_count / self.batch_size
@@ -137,6 +163,10 @@ if __name__ == '__main__':
     parser.add_argument('input_wvectors', type=str)
     parser.add_argument('input_cvectors', type=str)
     parser.add_argument('output_file_name', type=str)
+    parser.add_argument('preprocessed_pair_dir', type=str)
+    parser.add_argument('input_word2id', type=str)
+    parser.add_argument('input_id2word', type=str)
+    parser.add_argument('input_topfrequent', type=str)
     parser.add_argument('--batch_size', type=int, default=50)
     parser.add_argument('--window_size', type=int, default=5)
     parser.add_argument('--iteration', type=int, default=20)
@@ -144,7 +174,9 @@ if __name__ == '__main__':
     parser.add_argument('--initial_lr', type=float, default=0.025)
     args, _ = parser.parse_known_args()
     #w2v = Word2Vec(input_file_name=sys.argv[1], input_wvectors = sys.argv[2], input_cvectors = sys.argv[3], output_file_name=sys.argv[4])
-    w2v = Word2Vec(input_file_name=args.input_file_name, input_wvectors=args.input_wvectors, input_cvectors = args.input_cvectors, output_file_name=args.output_file_name,
+    w2v = Word2Vec(input_file_name=args.input_file_name, input_wvectors=args.input_wvectors, input_cvectors = args.input_cvectors,
+        output_file_name=args.output_file_name, preprocessed_pair_dir=args.preprocessed_pair_dir, input_word2id=args.input_word2id,
+        input_id2word=args.input_id2word, input_topfrequent=args.input_topfrequent,
         batch_size=args.batch_size, window_size=args.window_size, iteration=args.iteration, min_count=args.min_count,
         initial_lr=args.initial_lr)
     w2v.train()

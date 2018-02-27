@@ -1,6 +1,10 @@
 from gensim.models import KeyedVectors
 import codecs
 import random
+import os
+import debugger
+import re
+import tqdm
 
 def Topfreq(freqence):
     """计算出语料库里面最高频的1W个词
@@ -110,4 +114,58 @@ def V_Pad(batch_pairs, window_size):
         batch_v.append(c_n)
         mask.append(m)
     return batch_v, mask
+
+def dir_traversal(dir_path, only_file=True):
+    #获取dir_path目录下的所有文件路径，返回路径list
+    file_list = []
+    for lists in os.listdir(dir_path):
+        path = os.path.join(dir_path, lists)
+        if os.path.isdir(path):
+            if(only_file == False):
+                file_list.append(path)
+            file_list.extend(dir_traversal(path))
+        else:
+            file_list.append(path)
+    return file_list
+
+def get_preprocessed_pairs(pair_dir):
+    """
+
+    Args:
+        pair_dir:
+
+    Returns:
+        a generator that produces pairs: (center_word_id, replace_word_id, context_word_ids)
+
+    """
+    pairs = []
+    pair_file_paths = dir_traversal(pair_dir)
+    for pair_file_path in pair_file_paths:
+        if os.path.basename(pair_file_path).startswith('pair_'):
+            with codecs.open(pair_file_path, 'r', encoding='utf-8') as fin:
+                for line in fin:
+                    matchObj = re.match('([0-9]+) ([0-9]+) \((.*)\)', line)
+                    if matchObj is not None:
+                        center_word_id = int(matchObj.group(1))
+                        replace_word_id = int(matchObj.group(2))
+                        context_word_ids_str = matchObj.group(3).split(',')
+
+                        context_word_ids = []
+                        for context_word_id_str in context_word_ids_str:
+                            context_word_ids.append(int(context_word_id_str))
+
+                        #yield (center_word_id, replace_word_id, context_word_ids)
+                        pairs.append((center_word_id, replace_word_id, context_word_ids))
+    return pairs
+
+if __name__ == "__main__":
+    pair_generator = get_preprocessed_pairs('./data/debug')
+    cnt = 0
+    for pair in pair_generator:
+        center_word_id = pair[0]
+        replace_word_id = pair[1]
+        context_word_ids = pair[2]
+        cnt += 1
+    print(cnt)
+
 
