@@ -12,6 +12,7 @@ import sys
 import argparse
 from utils import get_preprocessed_pairs
 import codecs
+import debugger
 
 class Word2Vec:
     def __init__(self,

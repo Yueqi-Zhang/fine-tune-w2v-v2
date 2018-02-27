@@ -146,16 +146,20 @@ def get_preprocessed_pairs(pair_dir):
                 for line in fin:
                     matchObj = re.match('([0-9]+) ([0-9]+) \((.*)\)', line)
                     if matchObj is not None:
-                        center_word_id = int(matchObj.group(1))
-                        replace_word_id = int(matchObj.group(2))
-                        context_word_ids_str = matchObj.group(3).split(',')
+                        try:
+                            center_word_id = int(matchObj.group(1))
+                            replace_word_id = int(matchObj.group(2))
+                            context_word_ids_str = matchObj.group(3).split(',')
 
-                        context_word_ids = []
-                        for context_word_id_str in context_word_ids_str:
-                            context_word_ids.append(int(context_word_id_str))
+                            context_word_ids = []
+                            for context_word_id_str in context_word_ids_str:
+                                context_word_ids.append(int(context_word_id_str))
 
-                        #yield (center_word_id, replace_word_id, context_word_ids)
-                        pairs.append((center_word_id, replace_word_id, context_word_ids))
+                            #yield (center_word_id, replace_word_id, context_word_ids)
+                            pairs.append((center_word_id, replace_word_id, context_word_ids))
+                        except:
+                            pass
+
     return pairs
 
 if __name__ == "__main__":
