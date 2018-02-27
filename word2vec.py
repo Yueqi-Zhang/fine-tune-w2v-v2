@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 import sys
-
+import argparse
 
 class Word2Vec:
     def __init__(self,
@@ -128,5 +128,22 @@ class Word2Vec:
 
 
 if __name__ == '__main__':
-    w2v = Word2Vec(input_file_name=sys.argv[1], input_wvectors = sys.argv[2], input_cvectors = sys.argv[3], output_file_name=sys.argv[4])
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="Philly arguments parser")
+
+    parser.add_argument('input_file_name', type=str)
+    parser.add_argument('input_wvectors', type=str)
+    parser.add_argument('input_cvectors', type=str)
+    parser.add_argument('output_file_name', type=str)
+    parser.add_argument('--batch_size', type=int, default=50)
+    parser.add_argument('--window_size', type=int, default=5)
+    parser.add_argument('--iteration', type=int, default=20)
+    parser.add_argument('--min_count', type=int, default=30)
+    parser.add_argument('--initial_lr', type=float, default=0.025)
+    args, _ = parser.parse_known_args()
+    #w2v = Word2Vec(input_file_name=sys.argv[1], input_wvectors = sys.argv[2], input_cvectors = sys.argv[3], output_file_name=sys.argv[4])
+    w2v = Word2Vec(input_file_name=args.input_file_name, input_wvectors=args.input_wvectors, input_cvectors = args.input_cvectors, output_file_name=args.output_file_name,
+        batch_size=args.batch_size, window_size=args.window_size, iteration=args.iteration, min_count=args.min_count,
+        initial_lr=args.initial_lr)
     w2v.train()
