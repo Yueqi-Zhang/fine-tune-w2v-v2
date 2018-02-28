@@ -46,11 +46,12 @@ class InputData:
                     word_frequency[w] += 1
                 except:
                     word_frequency[w] = 1
+        sort_word_frequency = sorted(word_frequency.items(), key=lambda x: x[1], reverse=True)
         self.word2id = dict()
         self.id2word = dict()
         wid = 0
         self.word_frequency = dict()
-        for w, c in word_frequency.items():
+        for w, c in sort_word_frequency:
             if c < min_count:
                 self.sentence_length -= c
                 continue
