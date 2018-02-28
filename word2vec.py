@@ -58,17 +58,6 @@ class Word2Vec:
         self.output_file_name = output_file_name
         self.preprocessed_pair_dir = preprocessed_pair_dir
 
-        #self.emb_size = len(self.data.word2id)
-        self.emb_size = len(self.word2id)
-        self.emb_dimension = emb_dimension
-        self.batch_size = batch_size
-        self.window_size = window_size
-        self.iteration = iteration
-        self.initial_lr = initial_lr
-        self.p = p
-        self.sigma = sigma
-        self.clip = clip
-
         #self.word2id = self.data.word2id
         #self.id2word = self.data.id2word
         self.word2id = dict()
@@ -86,6 +75,18 @@ class Word2Vec:
             for lines in f:
                 self.topfrequent.append(int(lines.strip()))
         logging.info('topfrequent got!')
+
+        #self.emb_size = len(self.data.word2id)
+        self.emb_size = len(self.word2id)
+        self.emb_dimension = emb_dimension
+        self.batch_size = batch_size
+        self.window_size = window_size
+        self.iteration = iteration
+        self.initial_lr = initial_lr
+        self.p = p
+        self.sigma = sigma
+        self.clip = clip
+
 
         #self.topfrequent = Topfreq(self.data.word_frequency)
         #self.kneighbor = KNeighbor(input_wvectors, self.topfrequent, self.data.word2id, self.data.id2word)
