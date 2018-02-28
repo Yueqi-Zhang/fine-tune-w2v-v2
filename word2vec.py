@@ -60,6 +60,7 @@ class Word2Vec:
 
         #self.word2id = self.data.word2id
         #self.id2word = self.data.id2word
+        #self.topfrequent = Topfreq(self.data.word_frequency)
         self.word2id = dict()
         with codecs.open(input_word2id, 'r', encoding='utf-8') as f:
             for lines in f:
@@ -88,7 +89,6 @@ class Word2Vec:
         self.clip = clip
 
 
-        #self.topfrequent = Topfreq(self.data.word_frequency)
         #self.kneighbor = KNeighbor(input_wvectors, self.topfrequent, self.data.word2id, self.data.id2word)
         self.kneighbor = KNeighbor(input_wvectors, self.topfrequent, self.word2id, self.id2word)
         self.fine_tune_model = FineTuneModel(self.emb_size, self.emb_dimension, self.p, self.sigma)
@@ -122,7 +122,7 @@ class Word2Vec:
         #for i in process_bar:
         batch_count = 0
         for epoch in range(self.iteration):
-            pro_pairs_generator = get_preprocessed_pairs(self.preprocessed_pair_dir)
+            pro_pairs_generator = get_preprocessed_pairs(self.preprocessed_pair_dir, 'pkl')
             i = 0
             tot_loss = 0
             while True:
