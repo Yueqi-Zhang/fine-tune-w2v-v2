@@ -52,13 +52,14 @@ class Word2Vec:
         Returns:
             None.
         """
-        self.data = InputData(input_file_name, min_count)
+        #self.data = InputData(input_file_name, min_count)
         self.input_wvect = InputVector(input_wvectors)
         self.input_cvect = InputVector(input_cvectors)
         self.output_file_name = output_file_name
         self.preprocessed_pair_dir = preprocessed_pair_dir
 
-        self.emb_size = len(self.data.word2id)
+        #self.emb_size = len(self.data.word2id)
+        self.emb_size = len(self.word2id)
         self.emb_dimension = emb_dimension
         self.batch_size = batch_size
         self.window_size = window_size
@@ -68,6 +69,8 @@ class Word2Vec:
         self.sigma = sigma
         self.clip = clip
 
+        #self.word2id = self.data.word2id
+        #self.id2word = self.data.id2word
         self.word2id = dict()
         with codecs.open(input_word2id, 'r', encoding='utf-8') as f:
             for lines in f:
@@ -175,7 +178,7 @@ class Word2Vec:
                         for param_group in self.optimizer.param_groups:
                             param_group['lr'] = lr
             self.fine_tune_model.save_embedding(
-                self.data.id2word, self.output_file_name + "_%d" % epoch, self.use_cuda)
+                self.id2word, self.output_file_name + "_%d" % epoch, self.use_cuda)
 
 
 if __name__ == '__main__':

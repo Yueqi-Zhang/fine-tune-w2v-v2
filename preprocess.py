@@ -1,6 +1,6 @@
 from input_data import InputData
 from input_data import InputVector
-from utils import Topfreq, KNeighbor, Batch_pairs, Get_VSP
+from utils import Topfreq, KNeighbor, Batch_pairs, Get_VSP, dump_to_pkl
 import numpy
 import sys
 import codecs
@@ -31,12 +31,7 @@ class Word2Vec:
 
         kneighbor = KNeighbor(input_wvectors, topfrequent, word2id, id2word)
         pro_pairs = self.Get_pairs(input_file_name, word2id, id2word, topfrequent, kneighbor, window_size)
-        with codecs.open(output_file_name, 'w') as f:
-            for lines in pro_pairs:
-                a = str(lines[0])
-                b = str(lines[1])
-                c = str(lines[2])
-                f.write(a+' '+b+' '+c+'\n')
+        dump_to_pkl(pro_pairs, output_file_name)
 
     def Get_pairs(self, input_file_name, word2id, id2word, ids, neighbor, window_size):
         pairs = []
