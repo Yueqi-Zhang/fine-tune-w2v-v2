@@ -199,9 +199,10 @@ if __name__ == '__main__':
     parser.add_argument('--p', type=float, default=0.0)
     parser.add_argument('--sigma', type=float, default=1e-9)
     parser.add_argument('--clip', type=float, default=1.0)
+    parser.add_argument('--log_path', type=str, default='train.log')
     args, _ = parser.parse_known_args()
 
-    logging_set('train.log')
+    logging_set(args.log_path)
     #w2v = Word2Vec(input_file_name=sys.argv[1], input_wvectors = sys.argv[2], input_cvectors = sys.argv[3], output_file_name=sys.argv[4])
     w2v = Word2Vec(input_file_name=args.input_file_name, input_wvectors=args.input_wvectors, input_cvectors = args.input_cvectors,
         output_file_name=args.output_file_name, preprocessed_pair_dir=args.preprocessed_pair_dir, input_word2id=args.input_word2id,
