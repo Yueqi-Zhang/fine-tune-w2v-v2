@@ -211,10 +211,10 @@ def get_batch_pairs(pair_generator, batch_size):
     """
     batch_pairs = []
     for i in range(batch_size):
-        pair = pair_generator.__next__()
-        if pair is not None:
+        try:
+            pair = pair_generator.__next__()
             batch_pairs.append(pair)
-        else:
+        except:
             break
     if len(batch_pairs) > 0:
         return batch_pairs
