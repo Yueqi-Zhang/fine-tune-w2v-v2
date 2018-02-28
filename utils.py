@@ -5,6 +5,7 @@ import os
 import re
 import tqdm
 import logging
+import pickle as pkl
 
 def Topfreq(freqence):
     """计算出语料库里面最高频的1W个词
@@ -216,14 +217,24 @@ def logging_set(log_path):
     logging.getLogger().addHandler(console)
 
 
+def load_from_pkl(pkl_path):
+    with open(pkl_path, 'rb') as fin:
+        obj = pkl.load(fin)
+    return obj
+
+def dump_to_pkl(obj, pkl_path):
+    with open(pkl_path, 'wb') as fout:
+        pkl.dump(obj, fout)
+
+
 if __name__ == "__main__":
-    pair_generator = get_preprocessed_pairs('./data/debug')
-    cnt = 0
-    for pair in pair_generator:
-        center_word_id = pair[0]
-        replace_word_id = pair[1]
-        context_word_ids = pair[2]
-        cnt += 1
-    print(cnt)
+    a = dict()
+    a['a'] = 1
+    a['b'] = 2
+    dump_to_pkl(a, 'my_dict.pkl')
+
+    a_load = load_from_pkl('my_dict.pkl')
+
+    print(a == a_load)
 
 
