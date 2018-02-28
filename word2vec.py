@@ -1,6 +1,6 @@
 from input_data import InputData
 from input_data import InputVector
-from utils import Topfreq, KNeighbor, Get_pairs, Batch_pairs, Get_VSP, V_Pad
+from utils import Topfreq, KNeighbor, Get_pairs, Batch_pairs, Get_VSP, V_Pad, get_batch_pairs, logging_set
 import numpy
 from model import FineTuneModel
 from torch.autograd import Variable
@@ -13,6 +13,7 @@ import argparse
 from utils import get_preprocessed_pairs
 import codecs
 import debugger
+import logging
 
 class Word2Vec:
     def __init__(self,
@@ -71,17 +72,17 @@ class Word2Vec:
         with codecs.open(input_word2id, 'r', encoding='utf-8') as f:
             for lines in f:
                 self.word2id[lines.strip().split()[0]] = int(lines.strip().split()[1])
-        print('word2id got!')
+        logging.info('word2id got!')
         self.id2word = dict()
         with codecs.open(input_id2word, 'r', encoding='utf-8') as f:
             for lines in f:
                 self.id2word[int(lines.strip().split()[0])] = lines.strip().split()[1]
-        print('id2word got!')
+        logging.info('id2word got!')
         self.topfrequent = []
         with codecs.open(input_topfrequent, 'r', encoding='utf-8') as f:
             for lines in f:
                 self.topfrequent.append(int(lines.strip()))
-        print('topfrequent got!')
+        logging.info('topfrequent got!')
 
         #self.topfrequent = Topfreq(self.data.word_frequency)
         #self.kneighbor = KNeighbor(input_wvectors, self.topfrequent, self.data.word2id, self.data.id2word)
@@ -91,8 +92,10 @@ class Word2Vec:
         self.use_cuda = torch.cuda.is_available()
         if self.use_cuda:
             self.fine_tune_model.cuda()
+
         self.optimizer = optim.SGD(
-            filter(lambda p: p.requires_grad, self.fine_tune_model.parameters()), lr=self.initial_lr)
+            filter(lambda p: p.requires_grad, self.fine_tune_model.parameters()), lr=self.initial_lr, momentum=0.9)
+
 
     def train(self):
         """Multiple training.
@@ -102,64 +105,77 @@ class Word2Vec:
         """
         #pair_count = self.data.evaluate_pair_count(self.window_size)
         #pro_pairs = Get_pairs(self.data, self.topfrequent, self.kneighbor, self.window_size)
-        pro_pairs = get_preprocessed_pairs(self.preprocessed_pair_dir)
+
+        #pro_pairs = get_preprocessed_pairs(self.preprocessed_pair_dir)
 
         #vsp_pairs = Get_VSP(self.input_wvect, self.topfrequent, rho=self.rho)
-        pair_count = len(pro_pairs)
-        batch_count = self.iteration * pair_count / self.batch_size
-        process_bar = tqdm(range(int(batch_count)))
+        #pair_count = len(pro_pairs)
+        #batch_count = self.iteration * pair_count / self.batch_size
+        #process_bar = tqdm(range(int(batch_count)))
         # self.skip_gram_model.save_embedding(
         #     self.data.id2word, 'begin_embedding.txt', self.use_cuda)
-        tot_loss = 0
-        i = 0
-        for i in process_bar:
-        #for epoch in range(self.iteration):
-        #while True:
-            #i += 1
-            #pos_pairs = self.data.get_batch_pairs(self.batch_size,
-                                                  #self.window_size)
-            #batch_pairs = Batch_pairs(pro_pairs, self.batch_size, i, self.iteration)
-            batch_pairs = Batch_pairs(pro_pairs, self.batch_size)
-            #neg_v = self.data.get_neg_v_neg_sampling(pos_pairs, 5)
-            #batch_pair = batch_pairs[i % self.iteration]
-            batch_u = [pair[0] for pair in batch_pairs]
-            batch_n = [pair[1] for pair in batch_pairs]
-            batch_v = [pair[2] for pair in batch_pairs]
-            batch_v_pad, batch_v_mask = V_Pad(batch_pairs, self.window_size)
-            batch_vsp = Get_VSP(batch_u, batch_n, batch_v)
-            #batch_vsp_pad, batch_vsp_mask = VSP_Pad(batch_vsp, self.window_size, self.batch_size)
 
-            batch_u = Variable(torch.LongTensor(batch_u))
-            batch_n = Variable(torch.LongTensor(batch_n))
-            batch_v_pad = Variable(torch.LongTensor(batch_v_pad))
-            batch_v_mask = Variable(torch.FloatTensor(batch_v_mask))
-            batch_vsp = Variable(torch.LongTensor(batch_vsp))
-            #batch_vsp_mask = Variable(torch.LongTensor(batch_vsp_mask))
+        #for i in process_bar:
+        batch_count = 0
+        for epoch in range(self.iteration):
+            pro_pairs_generator = get_preprocessed_pairs(self.preprocessed_pair_dir)
+            i = 0
+            tot_loss = 0
+            while True:
+                i += 1
+                #pos_pairs = self.data.get_batch_pairs(self.batch_size,
+                                                      #self.window_size)
+                #batch_pairs = Batch_pairs(pro_pairs, self.batch_size, i, self.iteration)
+                #batch_pairs = Batch_pairs(pro_pairs, self.batch_size)
+                batch_pairs = get_batch_pairs(pro_pairs_generator, self.batch_size)
+                if batch_pairs is None:
+                    break
+                if epoch == 0:
+                    batch_count += 1
 
-            if self.use_cuda:
-                batch_u = batch_u.cuda()
-                batch_n = batch_n.cuda()
-                batch_v_pad = batch_v_pad.cuda()
-                batch_v_mask = batch_v_mask.cuda()
-                batch_vsp = batch_vsp.cuda()
-                #batch_vsp_mask = batch_vsp_mask.cuda()
+                #neg_v = self.data.get_neg_v_neg_sampling(pos_pairs, 5)
+                #batch_pair = batch_pairs[i % self.iteration]
+                batch_u, batch_n, batch_v = [], [], []
+                for pair in batch_pairs:
+                    batch_u.append(pair[0])
+                    batch_n.append(pair[1])
+                    batch_v.append(pair[2])
+                batch_v_pad, batch_v_mask = V_Pad(batch_pairs, self.window_size)
+                batch_vsp = Get_VSP(batch_u, batch_n, batch_v)
+                #batch_vsp_pad, batch_vsp_mask = VSP_Pad(batch_vsp, self.window_size, self.batch_size)
 
-            self.optimizer.zero_grad()
-            loss = self.fine_tune_model.forward(batch_u, batch_n, batch_v_pad, batch_v_mask, batch_vsp)
-            loss.backward()
-            torch.nn.utils.clip_grad_norm(self.fine_tune_model.parameters(), self.clip)
-            self.optimizer.step()
-            tot_loss += loss.data[0]
+                batch_u = Variable(torch.LongTensor(batch_u))
+                batch_n = Variable(torch.LongTensor(batch_n))
+                batch_v_pad = Variable(torch.LongTensor(batch_v_pad))
+                batch_v_mask = Variable(torch.FloatTensor(batch_v_mask))
+                batch_vsp = Variable(torch.LongTensor(batch_vsp))
+                #batch_vsp_mask = Variable(torch.LongTensor(batch_vsp_mask))
 
-            process_bar.set_description("Loss: %0.8f, lr: %0.6f" %
-                                        (tot_loss/(i+1),
-                                         self.optimizer.param_groups[0]['lr']))
-            if i * self.batch_size % 100000 == 0:
-                lr = self.initial_lr * (1.0 - 1.0 * i / batch_count)
-                for param_group in self.optimizer.param_groups:
-                    param_group['lr'] = lr
-        self.fine_tune_model.save_embedding(
-            self.data.id2word, self.output_file_name, self.use_cuda)
+                if self.use_cuda:
+                    batch_u = batch_u.cuda()
+                    batch_n = batch_n.cuda()
+                    batch_v_pad = batch_v_pad.cuda()
+                    batch_v_mask = batch_v_mask.cuda()
+                    batch_vsp = batch_vsp.cuda()
+                    #batch_vsp_mask = batch_vsp_mask.cuda()
+
+                self.optimizer.zero_grad()
+                loss = self.fine_tune_model.forward(batch_u, batch_n, batch_v_pad, batch_v_mask, batch_vsp)
+                loss.backward()
+                torch.nn.utils.clip_grad_norm(self.fine_tune_model.parameters(), self.clip)
+                self.optimizer.step()
+                tot_loss += loss.data[0]
+
+                #process_bar.set_description("Loss: %0.8f, lr: %0.6f" % (tot_loss/(i+1), self.optimizer.param_groups[0]['lr']))
+                if i % 100 == 0:
+                    logging.info("Loss: %0.8f, lr: %0.6f" % (tot_loss/(i+1), self.optimizer.param_groups[0]['lr']))
+                if epoch > 0:
+                    if i * self.batch_size % 10000 == 0:
+                        lr = self.initial_lr * (1.0 - 1.0 * i / batch_count)
+                        for param_group in self.optimizer.param_groups:
+                            param_group['lr'] = lr
+            self.fine_tune_model.save_embedding(
+                self.data.id2word, self.output_file_name + "_%d" % epoch, self.use_cuda)
 
 
 if __name__ == '__main__':
@@ -179,12 +195,17 @@ if __name__ == '__main__':
     parser.add_argument('--window_size', type=int, default=5)
     parser.add_argument('--iteration', type=int, default=1)
     parser.add_argument('--min_count', type=int, default=30)
-    parser.add_argument('--initial_lr', type=float, default=0.025)
+    parser.add_argument('--initial_lr', type=float, default=0.01)
+    parser.add_argument('--p', type=float, default=0.0)
+    parser.add_argument('--sigma', type=float, default=1e-9)
+    parser.add_argument('--clip', type=float, default=1.0)
     args, _ = parser.parse_known_args()
+
+    logging_set('train.log')
     #w2v = Word2Vec(input_file_name=sys.argv[1], input_wvectors = sys.argv[2], input_cvectors = sys.argv[3], output_file_name=sys.argv[4])
     w2v = Word2Vec(input_file_name=args.input_file_name, input_wvectors=args.input_wvectors, input_cvectors = args.input_cvectors,
         output_file_name=args.output_file_name, preprocessed_pair_dir=args.preprocessed_pair_dir, input_word2id=args.input_word2id,
         input_id2word=args.input_id2word, input_topfrequent=args.input_topfrequent,
         batch_size=args.batch_size, window_size=args.window_size, iteration=args.iteration, min_count=args.min_count,
-        initial_lr=args.initial_lr)
+        initial_lr=args.initial_lr, p=args.p, sigma=args.sigma, clip=args.clip)
     w2v.train()

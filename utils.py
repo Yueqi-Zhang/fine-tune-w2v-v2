@@ -4,6 +4,7 @@ import random
 import os
 import re
 import tqdm
+import logging
 
 def Topfreq(freqence):
     """计算出语料库里面最高频的1W个词
@@ -137,10 +138,11 @@ def get_preprocessed_pairs(pair_dir):
         a generator that produces pairs: (center_word_id, replace_word_id, context_word_ids)
 
     """
-    pairs = []
+    #pairs = []
     pair_file_paths = dir_traversal(pair_dir)
     print('Starting to get pairs from preprocessed dir...')
-    for pair_file_path in tqdm.tqdm(pair_file_paths):
+    #for pair_file_path in tqdm.tqdm(pair_file_paths):
+    for pair_file_path in pair_file_paths:
         if os.path.basename(pair_file_path).startswith('pair_'):
             with codecs.open(pair_file_path, 'r', encoding='utf-8') as fin:
                 for line in fin:
@@ -155,12 +157,64 @@ def get_preprocessed_pairs(pair_dir):
                             for context_word_id_str in context_word_ids_str:
                                 context_word_ids.append(int(context_word_id_str))
 
-                            #yield (center_word_id, replace_word_id, context_word_ids)
-                            pairs.append((center_word_id, replace_word_id, context_word_ids))
+                            yield (center_word_id, replace_word_id, context_word_ids)
+                            #pairs.append((center_word_id, replace_word_id, context_word_ids))
                         except:
                             pass
 
-    return pairs
+    #return pairs
+
+
+def get_batch_pairs(pair_generator, batch_size):
+    """ generate a batch of pairs from pair generator
+
+    Args:
+        pair_generator:
+
+    Returns:
+        batch_pairs / None (current epoch is over)
+
+        len(batch_pairs) of the last batch might be less than batch_size
+
+    """
+    batch_pairs = []
+    for i in range(batch_size):
+        pair = pair_generator.__next__()
+        if pair is not None:
+            batch_pairs.append(pair)
+        else:
+            break
+    if len(batch_pairs) > 0:
+        return batch_pairs
+    else:
+        return None
+
+def logging_set(log_path):
+    """
+    Note: if you invoke logging.info or something before basicConfig, some problems may appear because
+    the logging module has fabricate a default configuration
+
+    Args:
+    log_path:
+
+    Returns:
+
+    """
+
+    root = logging.getLogger()
+    if root.handlers:
+        for handler in root.handlers:
+            root.removeHandler(handler)
+
+    logging.basicConfig(filename=log_path, filemode='w',
+        format='%(asctime)s %(levelname)s %(filename)s %(funcName)s %(lineno)d: %(message)s',
+        level=logging.DEBUG)
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    console.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s %(filename)s %(funcName)s %(lineno)d: %(message)s'))
+    logging.getLogger().addHandler(console)
+
 
 if __name__ == "__main__":
     pair_generator = get_preprocessed_pairs('./data/debug')
