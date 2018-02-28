@@ -1,6 +1,11 @@
 from gensim.models import KeyedVectors
 import codecs
 import random
+import os
+import re
+import tqdm
+import logging
+import pickle as pkl
 
 def Topfreq(freqence):
     """计算出语料库里面最高频的1W个词
@@ -110,4 +115,126 @@ def V_Pad(batch_pairs, window_size):
         batch_v.append(c_n)
         mask.append(m)
     return batch_v, mask
+
+def dir_traversal(dir_path, only_file=True):
+    #获取dir_path目录下的所有文件路径，返回路径list
+    file_list = []
+    for lists in os.listdir(dir_path):
+        path = os.path.join(dir_path, lists)
+        if os.path.isdir(path):
+            if(only_file == False):
+                file_list.append(path)
+            file_list.extend(dir_traversal(path))
+        else:
+            file_list.append(path)
+    return file_list
+
+def get_preprocessed_pairs(pair_dir):
+    """
+
+    Args:
+        pair_dir:
+
+    Returns:
+        a generator that produces pairs: (center_word_id, replace_word_id, context_word_ids)
+
+    """
+    #pairs = []
+    pair_file_paths = dir_traversal(pair_dir)
+    print('Starting to get pairs from preprocessed dir...')
+    #for pair_file_path in tqdm.tqdm(pair_file_paths):
+    for pair_file_path in pair_file_paths:
+        if os.path.basename(pair_file_path).startswith('pair_'):
+            with codecs.open(pair_file_path, 'r', encoding='utf-8') as fin:
+                for line in fin:
+                    matchObj = re.match('([0-9]+) ([0-9]+) \((.*)\)', line)
+                    if matchObj is not None:
+                        try:
+                            center_word_id = int(matchObj.group(1))
+                            replace_word_id = int(matchObj.group(2))
+                            context_word_ids_str = matchObj.group(3).split(',')
+
+                            context_word_ids = []
+                            for context_word_id_str in context_word_ids_str:
+                                context_word_ids.append(int(context_word_id_str))
+
+                            yield (center_word_id, replace_word_id, context_word_ids)
+                            #pairs.append((center_word_id, replace_word_id, context_word_ids))
+                        except:
+                            pass
+
+    #return pairs
+
+
+def get_batch_pairs(pair_generator, batch_size):
+    """ generate a batch of pairs from pair generator
+
+    Args:
+        pair_generator:
+
+    Returns:
+        batch_pairs / None (current epoch is over)
+
+        len(batch_pairs) of the last batch might be less than batch_size
+
+    """
+    batch_pairs = []
+    for i in range(batch_size):
+        pair = pair_generator.__next__()
+        if pair is not None:
+            batch_pairs.append(pair)
+        else:
+            break
+    if len(batch_pairs) > 0:
+        return batch_pairs
+    else:
+        return None
+
+def logging_set(log_path):
+    """
+    Note: if you invoke logging.info or something before basicConfig, some problems may appear because
+    the logging module has fabricate a default configuration
+
+    Args:
+    log_path:
+
+    Returns:
+
+    """
+
+    root = logging.getLogger()
+    if root.handlers:
+        for handler in root.handlers:
+            root.removeHandler(handler)
+
+    logging.basicConfig(filename=log_path, filemode='w',
+        format='%(asctime)s %(levelname)s %(filename)s %(funcName)s %(lineno)d: %(message)s',
+        level=logging.DEBUG)
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    console.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s %(filename)s %(funcName)s %(lineno)d: %(message)s'))
+    logging.getLogger().addHandler(console)
+
+
+def load_from_pkl(pkl_path):
+    with open(pkl_path, 'rb') as fin:
+        obj = pkl.load(fin)
+    return obj
+
+def dump_to_pkl(obj, pkl_path):
+    with open(pkl_path, 'wb') as fout:
+        pkl.dump(obj, fout)
+
+
+if __name__ == "__main__":
+    a = dict()
+    a['a'] = 1
+    a['b'] = 2
+    dump_to_pkl(a, 'my_dict.pkl')
+
+    a_load = load_from_pkl('my_dict.pkl')
+
+    print(a == a_load)
+
 
