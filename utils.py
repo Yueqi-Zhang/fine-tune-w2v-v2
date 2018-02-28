@@ -129,11 +129,11 @@ def dir_traversal(dir_path, only_file=True):
             file_list.append(path)
     return file_list
 
-def get_preprocessed_pairs(pair_dir, format='pkl'):
+def get_preprocessed_pairs(pair_path, format='pkl'):
     """
 
     Args:
-        pair_dir:
+        pair_path:
         format: pkl/txt
 
     Returns:
@@ -141,33 +141,58 @@ def get_preprocessed_pairs(pair_dir, format='pkl'):
 
     """
     #pairs = []
-    pair_file_paths = dir_traversal(pair_dir)
-    print('Starting to get pairs from preprocessed dir...')
-    #for pair_file_path in tqdm.tqdm(pair_file_paths):
-    for pair_file_path in pair_file_paths:
-        if os.path.basename(pair_file_path).startswith('pair_'):
-            if format == 'txt':
-                with codecs.open(pair_file_path, 'r', encoding='utf-8') as fin:
-                    for line in fin:
-                        matchObj = re.match('([0-9]+) ([0-9]+) \((.*)\)', line)
-                        if matchObj is not None:
-                            try:
-                                center_word_id = int(matchObj.group(1))
-                                replace_word_id = int(matchObj.group(2))
-                                context_word_ids_str = matchObj.group(3).split(',')
 
-                                context_word_ids = []
-                                for context_word_id_str in context_word_ids_str:
-                                    context_word_ids.append(int(context_word_id_str))
+    if os.path.exists(pair_path):   # if it is a dir
+        pair_file_paths = dir_traversal(pair_path)
+        print('Starting to get pairs from preprocessed dir...')
+        #for pair_file_path in tqdm.tqdm(pair_file_paths):
+        for pair_file_path in pair_file_paths:
+            if os.path.basename(pair_file_path).startswith('pair_'):
+                if format == 'txt':
+                    with codecs.open(pair_file_path, 'r', encoding='utf-8') as fin:
+                        for line in fin:
+                            matchObj = re.match('([0-9]+) ([0-9]+) \((.*)\)', line)
+                            if matchObj is not None:
+                                try:
+                                    center_word_id = int(matchObj.group(1))
+                                    replace_word_id = int(matchObj.group(2))
+                                    context_word_ids_str = matchObj.group(3).split(',')
 
-                                yield (center_word_id, replace_word_id, context_word_ids)
-                                #pairs.append((center_word_id, replace_word_id, context_word_ids))
-                            except:
-                                pass
-            elif format == 'pkl':
-                pairs = load_from_pkl(pair_file_path)
-                for pair in pairs:
-                    yield pair
+                                    context_word_ids = []
+                                    for context_word_id_str in context_word_ids_str:
+                                        context_word_ids.append(int(context_word_id_str))
+
+                                    yield (center_word_id, replace_word_id, context_word_ids)
+                                    #pairs.append((center_word_id, replace_word_id, context_word_ids))
+                                except:
+                                    pass
+                elif format == 'pkl':
+                    pairs = load_from_pkl(pair_file_path)
+                    for pair in pairs:
+                        yield pair
+    elif os.path.isfile(pair_path):
+        if format == 'txt':
+            with codecs.open(pair_path, 'r', encoding='utf-8') as fin:
+                for line in fin:
+                    matchObj = re.match('([0-9]+) ([0-9]+) \((.*)\)', line)
+                    if matchObj is not None:
+                        try:
+                            center_word_id = int(matchObj.group(1))
+                            replace_word_id = int(matchObj.group(2))
+                            context_word_ids_str = matchObj.group(3).split(',')
+
+                            context_word_ids = []
+                            for context_word_id_str in context_word_ids_str:
+                                context_word_ids.append(int(context_word_id_str))
+
+                            yield (center_word_id, replace_word_id, context_word_ids)
+                            # pairs.append((center_word_id, replace_word_id, context_word_ids))
+                        except:
+                            pass
+        elif format == 'pkl':
+            pairs = load_from_pkl(pair_path)
+            for pair in pairs:
+                yield pair
 
     #return pairs
 
@@ -234,7 +259,7 @@ def dump_to_pkl(obj, pkl_path):
 
 
 if __name__ == "__main__":
-    a = load_from_pkl('data/pair_zhihu/pair_zhihu.txt')
+    a = load_from_pkl('data/pair_zhihu/pair_zhihu.pkl')
     pass
 
 
