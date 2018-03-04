@@ -129,7 +129,7 @@ def dir_traversal(dir_path, only_file=True):
             file_list.append(path)
     return file_list
 
-def get_preprocessed_pairs(pair_path, format='pkl'):
+def get_preprocessed_pairs(pair_path, format='pkl', sampling_rate=0.1):
     """
 
     Args:
@@ -146,8 +146,9 @@ def get_preprocessed_pairs(pair_path, format='pkl'):
         pair_file_paths = dir_traversal(pair_path)
         print('Starting to get pairs from preprocessed dir...')
         #for pair_file_path in tqdm.tqdm(pair_file_paths):
-        for pair_file_path in pair_file_paths:
+        for pair_file_path in tqdm.tqdm(pair_file_paths):
             if os.path.basename(pair_file_path).startswith('pair_'):
+                logging.debug('%s trained')
                 if format == 'txt':
                     with codecs.open(pair_file_path, 'r', encoding='utf-8') as fin:
                         for line in fin:

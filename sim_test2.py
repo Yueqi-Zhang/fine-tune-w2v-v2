@@ -16,8 +16,7 @@ def read_synset(path):
                 synset[lines[1]].add(lines[0])
     return synset
 
-def synset_test(synset, path):
-    emb = gensim.models.KeyedVectors.load_word2vec_format(path, binary=False, unicode_errors='ignore')
+def synset_test(synset, emb):
     vocab = emb.index2word
     vocab_set = set([w for w in vocab])
     emb_score = 0.0
@@ -40,7 +39,6 @@ def synset_test(synset, path):
             std += std_w
     emb_finalscore = emb_score/std
     return emb_finalscore
-    print('emb score: %0.8f' % emb_finalscore)
 
 
 if  __name__ == '__main__':
@@ -55,5 +53,7 @@ if  __name__ == '__main__':
 
     logging_set(args.log_path)
     synset = read_synset(args.synset_data)
-    score = synset_test(synset, args.emb_file_name)
-    logging.info('emb score: %0.8f' % score)
+
+    emb = gensim.models.KeyedVectors.load_word2vec_format(args.emb_file_name, binary=False, unicode_errors='ignore')
+    score = synset_test(synset, emb)
+    logging.info('emb score: %0.6f' % score)

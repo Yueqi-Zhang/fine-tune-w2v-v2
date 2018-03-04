@@ -18,6 +18,8 @@ def build_dictionary(word_list):
                 dictionary[w] = cnt
                 cnt += 1
         return dictionary
+
+
 def read_wordpair(sim_file):
         f1 = open(sim_file, 'r')
         pairs = []
@@ -27,6 +29,8 @@ def read_wordpair(sim_file):
                 pairs.append(pair)
         f1.close()
         return pairs
+
+
 def read_vectors(vec_file):
         # input:  the file of word2vectors
         # output: word dictionay, embedding matrix -- np ndarray
@@ -52,19 +56,25 @@ def read_vectors(vec_file):
                 embeddings[i] = embeddings[i] / np.linalg.norm(embeddings[i])
         dict_word = build_dictionary(word_list)
         return word_size, embed_dim, dict_word, embeddings
+
+
 def get_harmonic_mean(list):
         sum = 0.0
         for i in list:
             sum += 1.0 / (i + 1)
         return len(list) / sum
+
+
 def frange(start, stop, step):
         i = start
         while i < stop:
             yield i
             i += step
-def calc_sim(emb_file, similarity_file):
+
+
+def calc_sim(word_size, embed_dim, dict_word, embeddings, similarity_file):
         pairs = read_wordpair(similarity_file)
-        word_size, embed_dim, dict_word, embeddings = read_vectors(emb_file)
+
         human_sim = []
         vec_sim = []
         cnt = 0
@@ -83,6 +93,7 @@ def calc_sim(emb_file, similarity_file):
                         human_sim.append(pair[2])
                         vec_sim.append(vsim)
         score = spearmanr(human_sim, vec_sim)
+        logging.info('%d word pairs appeared in the training dictionary , total word pairs %d' % (cnt, total))
         return cnt, total, score
 
 
@@ -97,6 +108,6 @@ if  __name__ == '__main__':
         args, _ = parser.parse_known_args()
 
         logging_set(args.log_path)
-        cnt, total, score = calc_sim(args.emb_file_name, args.similarity_test_data)
-        logging.info('%d word pairs appeared in the training dictionary , total word pairs %d' % (cnt,total))
-        logging.info('test score: %0.8f' % score.correlation)
+        word_size, embed_dim, dict_word, embeddings = read_vectors(args.emb_file_name)
+        cnt, total, score = calc_sim(word_size, embed_dim, dict_word, embeddings, args.similarity_test_data)
+        logging.info('test score: %0.6f' % score.correlation)
