@@ -85,7 +85,10 @@ def analogy_test_by_glove(model, analogies_file_path, to_encode, no_threads=1):
         logging.info('Section %s mean rank: %s, accuracy: %s' % (section, ranks.mean(), (ranks == 0).sum() / float(len(ranks))))
 
     ranks = np.hstack(section_ranks)
-    logging.info('Overall rank: %s, accuracy: %s' % (ranks.mean(), (ranks == 0).sum() / float(len(ranks))))
+    mean_rank_overall = ranks.mean()
+    accuracy_overall = (ranks == 0).sum() / float(len(ranks))
+    logging.info('Overall mean rank: %s, accuracy: %s' % (mean_rank_overall, accuracy_overall))
+    return mean_rank_overall, accuracy_overall
 
 
 def rewrite_word2vec_to_glove(emb_word2vec_path, emb_glove_path):
