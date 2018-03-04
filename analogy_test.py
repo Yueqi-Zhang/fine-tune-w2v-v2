@@ -3,10 +3,15 @@ from utils import logging_set
 from gensim.models import Word2Vec
 import argparse
 import gensim
-from glove import Glove, metrics  #pip install glove_python
+from glove import Glove, metrics  # download from https://github.com/maciejkula/glove-python.git, python setup.py install
 from collections import defaultdict
 import numpy as np
+<<<<<<< HEAD
 import debugger
+=======
+import codecs
+import os
+>>>>>>> 19e2a9c1e59725ccd2c25c79522c6ae13a42385a
 
 def analogy_test_by_gensim(model, analogies_file_path):
     """ this function is abandoned
@@ -76,16 +81,37 @@ def analogy_test_by_glove(model, analogies_file_path, to_encode, no_threads=1):
                         metrics.read_analogy_file(analogies_file_path)]
     section_ranks = []
     for section, words in sections.items():
-        evaluation_ids = metrics.construct_analogy_test_set(words, model.dictionary, ignore_missing=True)
+        evaluation_ids = metrics.construct_analogy_test_set(words, model.dictionary, ignore_missing=True)   # model.dictionary: dict word2id
 
         # Get the rank array.
-        ranks = metrics.analogy_rank_score(evaluation_ids, model.word_vectors, no_threads=no_threads)
+        ranks = metrics.analogy_rank_score(evaluation_ids, model.word_vectors, no_threads=no_threads)       #model.word_vectors: 2d np array emb matrix
         section_ranks.append(ranks)
 
         logging.info('Section %s mean rank: %s, accuracy: %s' % (section, ranks.mean(), (ranks == 0).sum() / float(len(ranks))))
 
     ranks = np.hstack(section_ranks)
-    logging.info('Overall rank: %s, accuracy: %s' % (ranks.mean(), (ranks == 0).sum() / float(len(ranks))))
+    mean_rank_overall = ranks.mean()
+    accuracy_overall = (ranks == 0).sum() / float(len(ranks))
+    logging.info('Overall mean rank: %s, accuracy: %s' % (mean_rank_overall, accuracy_overall))
+    return mean_rank_overall, accuracy_overall
+
+
+def rewrite_word2vec_to_glove(emb_word2vec_path, emb_glove_path):
+    """ the difference between word2vec and glove format is:
+            word2vec writes the 'number of words \t emb_dim' in its first line, but glove not
+
+    Args:
+        emb_word2vec_path:
+        emb_glove_path:
+
+    Returns:
+
+    """
+    with codecs.open(emb_word2vec_path, 'r') as fin:
+        with codecs.open(emb_glove_path, 'w') as fout:
+            fin.readline()
+            for line in fin:
+                fout.write(line)
 
 
 if __name__ == "__main__":
@@ -109,8 +135,10 @@ if __name__ == "__main__":
     #sem_acc, syn_acc = analogy_test_by_gensim(my_model, args.analogy_test_data)
     #logging.info('Semantic accuracy: %.2f; Syntactic accuracy: %.2f' % (sem_acc, syn_acc))
 
+    if not os.path.isfile(os.path.join(args.emb_file_name, '.glove')):
+        rewrite_word2vec_to_glove(args.emb_file_name, os.path.join(args.emb_file_name, '.glove'))
 
-    model = Glove.load_stanford(args.emb_file_name)
+    model = Glove.load_stanford(os.path.join(args.emb_file_name, '.glove'))
     analogy_test_by_glove(model, args.analogy_test_data, args.to_encode, args.no_threads)
 
 

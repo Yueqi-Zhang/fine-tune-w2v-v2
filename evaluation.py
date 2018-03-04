@@ -8,9 +8,11 @@ import argparse
 import gensim
 import os
 
+from glove import Glove, metrics
+
 from sim_test1 import read_vectors, calc_sim
 from sim_test2 import read_synset, synset_test
-from analogy_test import analogy_test
+from analogy_test import analogy_test, rewrite_word2vec_to_glove
 
 import debugger
 
@@ -56,23 +58,27 @@ def evaluation(emb_file_path, similarity_test_paths, synset_paths, analogy_paths
                 save_flag = True
                 best_scores[synset_path] = score
 
+    emb_path_glove = os.path.join(args.emb_file_path, '.glove')
+    if not os.path.isfile():
+        rewrite_word2vec_to_glove(args.emb_file_name, emb_path_glove)    
+    emb = Glove.load_stanford(emb_path_glove)
+
     if analogy_paths is not None:
         # test analogy
         for analogy_path in analogy_paths.split("|"):
             logging.info('TEST ANALOGY. To evaluate embedding %s and analogy_test_file %s:' % (emb_file_path, os.path.basename(analogy_path)))
-            sem_acc, syn_acc = analogy_test(emb, analogy_path)
-            logging.info('Semantic accuracy: %.6f; Syntactic accuracy: %.6f' % (sem_acc, syn_acc))
+            mean_rank_overall, accuracy_overall = analogy_test(emb, analogy_path)
 
-            best_sem_acc, best_syn_acc = best_scores.get(analogy_path, [0, 0])
-            if sem_acc > best_sem_acc:
+            best_mean_rank, best_accuracy = best_scores.get(analogy_path, [0, 0])
+            if accuracy_overall > best_accuracy:
                 save_flag = True
-                best_sem_acc = sem_acc
+                best_accuracy = accuracy_overall
 
-            if syn_acc > best_syn_acc:
+            if mean_rank_overall > best_mean_rank:
                 save_flag = True
-                best_syn_acc = syn_acc
+                best_mean_rank = mean_rank_overall
 
-            best_scores[analogy_path] = [best_sem_acc, best_syn_acc]
+            best_scores[analogy_path] = [best_mean_rank, best_accuracy]
 
     return best_scores, save_flag
 
