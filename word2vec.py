@@ -114,7 +114,7 @@ class Word2Vec:
             filter(lambda p: p.requires_grad, self.fine_tune_model.parameters()), lr=self.initial_lr, momentum=0.9)
 
 
-    def train(self, similarity_test_paths, synset_paths, analogy_paths):
+    def train(self, similarity_test_paths, synset_paths, analogy_paths, sample_rate=1):
         """Multiple training.
 
         Returns:
@@ -141,7 +141,7 @@ class Word2Vec:
         batch_count = 0
         best_scores = dict()
         for epoch in range(self.iteration):
-            pro_pairs_generator = get_preprocessed_pairs(self.preprocessed_pair_dir, 'pkl')
+            pro_pairs_generator = get_preprocessed_pairs(self.preprocessed_pair_dir, 'pkl', sample_rate=sample_rate)
             i = 0
             tot_loss = 0
             while True:
@@ -211,10 +211,7 @@ class Word2Vec:
                         previous_lr = lr
                 else:
                     previous_lr = self.initial_lr
-            '''
-            self.fine_tune_model.save_embedding(
-                self.id2word, self.output_file_name + "_%d" % epoch, self.use_cuda)
-            '''
+            #self.fine_tune_model.save_embedding(self.id2word, self.output_file_name + "_%d" % epoch, self.use_cuda)
 
 
 if __name__ == '__main__':
@@ -252,4 +249,5 @@ if __name__ == '__main__':
         input_id2word=args.input_id2word, input_topfrequent=args.input_topfrequent,
         batch_size=args.batch_size, window_size=args.window_size, iteration=args.iteration, min_count=args.min_count,
         initial_lr=args.initial_lr, p=args.p, sigma=args.sigma, clip=args.clip)
-    w2v.train(similarity_test_paths=args.similarity_test_paths, synset_paths=args.synset_paths, analogy_test_paths=args.analogy_test_paths)
+    w2v.train(similarity_test_paths=args.similarity_test_paths, synset_paths=args.synset_paths, analogy_test_paths=args.analogy_test_paths,
+        sample_rate=args.sample_rate)
