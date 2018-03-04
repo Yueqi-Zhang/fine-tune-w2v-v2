@@ -12,6 +12,10 @@ fi
 ###########AUTOMATION######################
 for ((index=$index_begin; index<=$index_end; index ++))
 do
-    echo $index
-    python preprocess.py data/corpus_${index}.0.txt data/wvect.txt data/word2id.txt data/id2word.txt data/topfrequent.txt data/pair/pair_${index}.pkl
+    if [ ! -f "data/pair/pair_${index}.pkl" ]; then
+        echo `date +%c` $index "start"
+        python preprocess.py data/corpus_${index}.0.txt data/wvect.txt data/word2id.txt data/id2word.txt data/topfrequent.txt data/pair/pair_${index}.pkl
+    else
+        echo `date +%c` $index "already exist"
+    fi
 done

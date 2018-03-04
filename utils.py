@@ -191,6 +191,7 @@ def get_preprocessed_pairs(pair_path, format='pkl'):
                             pass
         elif format == 'pkl':
             pairs = load_from_pkl(pair_path)
+            random.shuffle(pairs)
             for pair in pairs:
                 yield pair
 

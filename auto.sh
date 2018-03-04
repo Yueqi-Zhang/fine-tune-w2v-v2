@@ -16,7 +16,7 @@ then
     run_time=0
     while $run_time == 0
     do
-        if [ ! -f "data/pair/pair_${index}.txt" ]; then
+        if [ ! -f "data/pair/pair_${index}.pkl" ]; then
             nohup python preprocess.py data/corpus_${index}.0.txt data/wvect.txt data/word2id.txt data/id2word.txt data/topfrequent.txt data/pair/pair_${index}.pkl &
             run_time = `expr $run_time + 1`
             #echo "preprocessing! $index"
@@ -27,10 +27,10 @@ fi
 
 if [ $index -gt $index_end ]
 then
-    echo "All the commands have been started"
+    echo `date +%c` "All the commands have been started"
     break
 fi
 
-echo "Current working process num:${count}, the next index is: $index"
+echo `date +%c` "Current working process num:${count}, the next index is: $index"
 sleep 3 #detect every 180 seconds
 done
