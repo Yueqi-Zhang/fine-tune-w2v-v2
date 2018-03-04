@@ -1,19 +1,27 @@
-from input_data import InputData
-from input_data import InputVector
-from utils import Topfreq, KNeighbor, Get_pairs, Batch_pairs, Get_VSP, V_Pad, get_batch_pairs, logging_set
-import numpy
-from model import FineTuneModel
 from torch.autograd import Variable
 import torch
 import torch.nn as nn
 import torch.optim as optim
+
+import numpy
 from tqdm import tqdm
 import sys
 import argparse
-from utils import get_preprocessed_pairs
 import codecs
-import debugger
 import logging
+import os
+import tempfile
+import random
+import string
+import shutil
+
+from utils import get_preprocessed_pairs
+import debugger
+import evaluation
+from input_data import InputData
+from input_data import InputVector
+from utils import Topfreq, KNeighbor, Get_pairs, Batch_pairs, Get_VSP, V_Pad, get_batch_pairs, logging_set
+from model import FineTuneModel
 
 class Word2Vec:
     def __init__(self,
@@ -33,7 +41,9 @@ class Word2Vec:
                  min_count=30,
                  p = 0.0,
                  sigma = 1e-9,
-                 clip = 1.0
+                 clip = 1.0,
+                 batch_num_to_show_progress=10000,
+                 batch_num_to_valid=100000,
                  ):
         """Initilize class parameters.
 
@@ -48,6 +58,7 @@ class Word2Vec:
             min_count: The minimal word frequency, words with lower frequency will be filtered.
             p: The minimum probability distance of center word and neighbor word
             sigma: L2 regularisation constant
+            batch_num_to_show_progress: every batch_num_to_show_progress batches, logging the current loss and learning rate.
 
         Returns:
             None.
@@ -88,6 +99,8 @@ class Word2Vec:
         self.sigma = sigma
         self.clip = clip
 
+        self.batch_num_to_show_progress = batch_num_to_show_progress
+        self.batch_num_to_valid = batch_num_to_valid
 
         #self.kneighbor = KNeighbor(input_wvectors, self.topfrequent, self.data.word2id, self.data.id2word)
         self.kneighbor = KNeighbor(input_wvectors, self.topfrequent, self.word2id, self.id2word)
@@ -101,7 +114,7 @@ class Word2Vec:
             filter(lambda p: p.requires_grad, self.fine_tune_model.parameters()), lr=self.initial_lr, momentum=0.9)
 
 
-    def train(self):
+    def train(self, similarity_test_paths, synset_paths, analogy_paths):
         """Multiple training.
 
         Returns:
@@ -119,8 +132,14 @@ class Word2Vec:
         # self.skip_gram_model.save_embedding(
         #     self.data.id2word, 'begin_embedding.txt', self.use_cuda)
 
+        tmp_emb_dir = os.path.join(tempfile.gettempdir(), 'embedding')
+        tmp_emb_path = os.path.join(tmp_emb_dir, ''.join(random.sample(string.ascii_letters + string.digits, 16)))
+        if not os.path.exists(tmp_emb_dir):
+            os.makedirs(tmp_emb_dir)
+
         #for i in process_bar:
         batch_count = 0
+        best_scores = dict()
         for epoch in range(self.iteration):
             pro_pairs_generator = get_preprocessed_pairs(self.preprocessed_pair_dir, 'pkl')
             i = 0
@@ -171,15 +190,31 @@ class Word2Vec:
                 tot_loss += loss.data[0]
 
                 #process_bar.set_description("Loss: %0.8f, lr: %0.6f" % (tot_loss/(i+1), self.optimizer.param_groups[0]['lr']))
-                if i % 100 == 0:
+                if i % self.batch_num_to_show_progress == 0:
                     logging.info("Loss: %0.8f, lr: %0.6f" % (tot_loss/(i+1), self.optimizer.param_groups[0]['lr']))
+
+                if i % self.batch_num_to_valid == 0:
+                    logging.info('epoch%d_batch%d, evaluating...' % (epoch, i))
+                    self.fine_tune_model.save_embedding(self.id2word, tmp_emb_path, self.use_cuda)
+
+                    best_scores, save_flag = evaluation(tmp_emb_path, similarity_test_paths, synset_paths, analogy_paths, best_scores)
+                    if save_flag == True:
+                        emb_save_path = self.output_file_name + "_epoch%d_batch%d" % (epoch, i)
+                        shutil.move(tmp_emb_path, emb_save_path)
+                        logging.info('Save current embedding to %s' % emb_save_path)
+
                 if epoch > 0:
                     if i * self.batch_size % 10000 == 0:
-                        lr = self.initial_lr * (1.0 - 1.0 * i / batch_count)
+                        lr = previous_lr * (1.0 - 1.0 * i / batch_count)
                         for param_group in self.optimizer.param_groups:
                             param_group['lr'] = lr
+                        previous_lr = lr
+                else:
+                    previous_lr = self.initial_lr
+            '''
             self.fine_tune_model.save_embedding(
                 self.id2word, self.output_file_name + "_%d" % epoch, self.use_cuda)
+            '''
 
 
 if __name__ == '__main__':
@@ -195,6 +230,9 @@ if __name__ == '__main__':
     parser.add_argument('input_word2id', type=str)
     parser.add_argument('input_id2word', type=str)
     parser.add_argument('input_topfrequent', type=str)
+    parser.add_argument('similarity_test_paths', type=str, default='data/240.txt|data/297.txt')
+    parser.add_argument('synset_paths', type=str, default='data/nsem3-adjusted.txt')
+    parser.add_argument('analogy_test_paths', type=str, default='data/analogy.txt')
     parser.add_argument('--batch_size', type=int, default=128)
     parser.add_argument('--window_size', type=int, default=5)
     parser.add_argument('--iteration', type=int, default=1)
@@ -204,6 +242,7 @@ if __name__ == '__main__':
     parser.add_argument('--sigma', type=float, default=1e-9)
     parser.add_argument('--clip', type=float, default=1.0)
     parser.add_argument('--log_path', type=str, default='train.log')
+    parser.add_argument('--sample_rate', type=float, default=1)
     args, _ = parser.parse_known_args()
 
     logging_set(args.log_path)
@@ -213,4 +252,4 @@ if __name__ == '__main__':
         input_id2word=args.input_id2word, input_topfrequent=args.input_topfrequent,
         batch_size=args.batch_size, window_size=args.window_size, iteration=args.iteration, min_count=args.min_count,
         initial_lr=args.initial_lr, p=args.p, sigma=args.sigma, clip=args.clip)
-    w2v.train()
+    w2v.train(similarity_test_paths=args.similarity_test_paths, synset_paths=args.synset_paths, analogy_test_paths=args.analogy_test_paths)
