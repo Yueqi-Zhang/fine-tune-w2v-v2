@@ -230,9 +230,9 @@ if __name__ == '__main__':
     parser.add_argument('input_word2id', type=str)
     parser.add_argument('input_id2word', type=str)
     parser.add_argument('input_topfrequent', type=str)
-    parser.add_argument('similarity_test_paths', type=str, default='data/240.txt|data/297.txt')
-    parser.add_argument('synset_paths', type=str, default='data/nsem3-adjusted.txt')
-    parser.add_argument('analogy_test_paths', type=str, default='data/analogy.txt')
+    parser.add_argument('--similarity_test_paths', type=str, default='data/240.txt|data/297.txt')
+    parser.add_argument('--synset_paths', type=str, default='data/nsem3-adjusted.txt')
+    parser.add_argument('--analogy_test_paths', type=str, default='data/analogy.txt')
     parser.add_argument('--batch_size', type=int, default=128)
     parser.add_argument('--window_size', type=int, default=5)
     parser.add_argument('--iteration', type=int, default=1)
@@ -240,6 +240,9 @@ if __name__ == '__main__':
     parser.add_argument('--initial_lr', type=float, default=0.01)
     parser.add_argument('--p', type=float, default=0.0)
     parser.add_argument('--sigma', type=float, default=1e-9)
+    parser.add_argument('--clip', type=float, default=1.0)
+    parser.add_argument('--batch_num_to_show_progress', type=int, default=10000)
+    parser.add_argument('--batch_num_to_valid', type=int, default=100000)
     parser.add_argument('--clip', type=float, default=1.0)
     parser.add_argument('--log_path', type=str, default='train.log')
     parser.add_argument('--sample_rate', type=float, default=1)
@@ -251,5 +254,6 @@ if __name__ == '__main__':
         output_file_name=args.output_file_name, preprocessed_pair_dir=args.preprocessed_pair_dir, input_word2id=args.input_word2id,
         input_id2word=args.input_id2word, input_topfrequent=args.input_topfrequent,
         batch_size=args.batch_size, window_size=args.window_size, iteration=args.iteration, min_count=args.min_count,
-        initial_lr=args.initial_lr, p=args.p, sigma=args.sigma, clip=args.clip)
+        initial_lr=args.initial_lr, p=args.p, sigma=args.sigma, clip=args.clip, batch_num_to_show_progress=args.batch_num_to_show_progress,
+        batch_num_to_valid=args.batch_num_to_valid)
     w2v.train(similarity_test_paths=args.similarity_test_paths, synset_paths=args.synset_paths, analogy_test_paths=args.analogy_test_paths)

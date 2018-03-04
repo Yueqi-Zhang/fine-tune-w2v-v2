@@ -12,6 +12,8 @@ from sim_test1 import read_vectors, calc_sim
 from sim_test2 import read_synset, synset_test
 from analogy_test import analogy_test
 
+import debugger
+
 def evaluation(emb_file_path, similarity_test_paths, synset_paths, analogy_paths, best_scores=dict()):
     """
 
@@ -36,7 +38,7 @@ def evaluation(emb_file_path, similarity_test_paths, synset_paths, analogy_paths
         logging.info('TEST1. To evaluate embedding %s and similarity_test_file %s: ' % (emb_file_path, os.path.basename(similarity_test_path)))
         cnt, total, score = calc_sim(word_size, embed_dim, dict_word, embeddings, similarity_test_path)
         logging.info('test score: %0.6f' % score.correlation)
-        if score > best_scores.get(similarity_test_path, 0):
+        if score.correlation > best_scores.get(similarity_test_path, 0):
             save_flag = True
             best_scores[similarity_test_path] = score
 
@@ -78,9 +80,9 @@ if __name__ == "__main__":
         description="Philly arguments parser")
 
     parser.add_argument('emb_file_name', type=str)
-    parser.add_argument('similarity_test_paths', type=str, default='data/240.txt|data/297.txt')
-    parser.add_argument('synset_paths', type=str, default='data/nsem3-adjusted.txt')
-    parser.add_argument('analogy_test_paths', type=str, default='data/analogy.txt')
+    parser.add_argument('--similarity_test_paths', type=str, default='data/240.txt|data/297.txt')
+    parser.add_argument('--synset_paths', type=str, default='data/nsem3-adjusted.txt')
+    parser.add_argument('--analogy_test_paths', type=str, default='data/analogy.txt')
     parser.add_argument('--log_path', type=str, default='evaluation.log')
     args, _ = parser.parse_known_args()
     logging_set(args.log_path)
