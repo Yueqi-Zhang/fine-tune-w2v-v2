@@ -6,12 +6,9 @@ import gensim
 from glove import Glove, metrics  # download from https://github.com/maciejkula/glove-python.git, python setup.py install
 from collections import defaultdict
 import numpy as np
-<<<<<<< HEAD
 import debugger
-=======
 import codecs
 import os
->>>>>>> 19e2a9c1e59725ccd2c25c79522c6ae13a42385a
 
 def analogy_test_by_gensim(model, analogies_file_path):
     """ this function is abandoned
@@ -135,10 +132,11 @@ if __name__ == "__main__":
     #sem_acc, syn_acc = analogy_test_by_gensim(my_model, args.analogy_test_data)
     #logging.info('Semantic accuracy: %.2f; Syntactic accuracy: %.2f' % (sem_acc, syn_acc))
 
-    if not os.path.isfile(os.path.join(args.emb_file_name, '.glove')):
-        rewrite_word2vec_to_glove(args.emb_file_name, os.path.join(args.emb_file_name, '.glove'))
+    emb_glove_path = args.emb_file_name + ".glove"
+    if not os.path.isfile(emb_glove_path):
+        rewrite_word2vec_to_glove(args.emb_file_name, emb_glove_path)
 
-    model = Glove.load_stanford(os.path.join(args.emb_file_name, '.glove'))
+    model = Glove.load_stanford(emb_glove_path)
     analogy_test_by_glove(model, args.analogy_test_data, args.to_encode, args.no_threads)
 
 

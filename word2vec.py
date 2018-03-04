@@ -17,7 +17,7 @@ import shutil
 
 from utils import get_preprocessed_pairs
 import debugger
-import evaluation
+from evaluation import evaluation
 from input_data import InputData
 from input_data import InputVector
 from utils import Topfreq, KNeighbor, Get_pairs, Batch_pairs, Get_VSP, V_Pad, get_batch_pairs, logging_set
@@ -212,6 +212,15 @@ class Word2Vec:
                 else:
                     previous_lr = self.initial_lr
             #self.fine_tune_model.save_embedding(self.id2word, self.output_file_name + "_%d" % epoch, self.use_cuda)
+            logging.info('final evaluating...')
+            self.fine_tune_model.save_embedding(self.id2word, tmp_emb_path, self.use_cuda)
+            best_scores, save_flag = evaluation(tmp_emb_path, similarity_test_paths, synset_paths, analogy_paths, best_scores)
+            if save_flag == True:
+                emb_save_path = self.output_file_name + "_epoch%d" % epoch
+                shutil.move(tmp_emb_path, emb_save_path)
+                logging.info('Save current embedding to %s' % emb_save_path)
+
+
 
 
 if __name__ == '__main__':
@@ -240,7 +249,6 @@ if __name__ == '__main__':
     parser.add_argument('--clip', type=float, default=1.0)
     parser.add_argument('--batch_num_to_show_progress', type=int, default=10000)
     parser.add_argument('--batch_num_to_valid', type=int, default=100000)
-    parser.add_argument('--clip', type=float, default=1.0)
     parser.add_argument('--log_path', type=str, default='train.log')
     parser.add_argument('--sample_rate', type=float, default=1)
     args, _ = parser.parse_known_args()
@@ -253,5 +261,5 @@ if __name__ == '__main__':
         batch_size=args.batch_size, window_size=args.window_size, iteration=args.iteration, min_count=args.min_count,
         initial_lr=args.initial_lr, p=args.p, sigma=args.sigma, clip=args.clip, batch_num_to_show_progress=args.batch_num_to_show_progress,
         batch_num_to_valid=args.batch_num_to_valid)
-    w2v.train(similarity_test_paths=args.similarity_test_paths, synset_paths=args.synset_paths, analogy_test_paths=args.analogy_test_paths,
+    w2v.train(similarity_test_paths=args.similarity_test_paths, synset_paths=args.synset_paths, analogy_paths=args.analogy_test_paths,
         sample_rate=args.sample_rate)
