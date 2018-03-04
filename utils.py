@@ -129,7 +129,7 @@ def dir_traversal(dir_path, only_file=True):
             file_list.append(path)
     return file_list
 
-def get_preprocessed_pairs(pair_path, format='pkl', sampling_rate=0.1):
+def get_preprocessed_pairs(pair_path, format='pkl', sample_rate=0.1):
     """
 
     Args:
@@ -162,15 +162,16 @@ def get_preprocessed_pairs(pair_path, format='pkl', sampling_rate=0.1):
                                     context_word_ids = []
                                     for context_word_id_str in context_word_ids_str:
                                         context_word_ids.append(int(context_word_id_str))
-
-                                    yield (center_word_id, replace_word_id, context_word_ids)
+                                    if random.random() <= sample_rate:
+                                        yield (center_word_id, replace_word_id, context_word_ids)
                                     #pairs.append((center_word_id, replace_word_id, context_word_ids))
                                 except:
                                     pass
                 elif format == 'pkl':
                     pairs = load_from_pkl(pair_file_path)
                     for pair in pairs:
-                        yield pair
+                        if random.random() <= sample_rate:
+                            yield pair
     elif os.path.isfile(pair_path):
         if format == 'txt':
             with codecs.open(pair_path, 'r', encoding='utf-8') as fin:
@@ -186,7 +187,8 @@ def get_preprocessed_pairs(pair_path, format='pkl', sampling_rate=0.1):
                             for context_word_id_str in context_word_ids_str:
                                 context_word_ids.append(int(context_word_id_str))
 
-                            yield (center_word_id, replace_word_id, context_word_ids)
+                            if random.random() <= sample_rate:
+                                yield (center_word_id, replace_word_id, context_word_ids)
                             # pairs.append((center_word_id, replace_word_id, context_word_ids))
                         except:
                             pass
@@ -194,7 +196,8 @@ def get_preprocessed_pairs(pair_path, format='pkl', sampling_rate=0.1):
             pairs = load_from_pkl(pair_path)
             random.shuffle(pairs)
             for pair in pairs:
-                yield pair
+                if random.random() <= sample_rate:
+                    yield pair
 
     #return pairs
 
