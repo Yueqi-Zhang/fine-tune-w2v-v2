@@ -6,6 +6,7 @@ import gensim
 from glove import Glove, metrics  #pip install glove_python
 from collections import defaultdict
 import numpy as np
+import debugger
 
 def analogy_test_by_gensim(model, analogies_file_path):
     """ this function is abandoned
@@ -67,7 +68,8 @@ def analogy_test_by_glove(model, analogies_file_path, to_encode, no_threads=1):
     if to_encode:
         encode = lambda words: [x.lower().encode('utf-8') for x in words]
     else:
-        encode = lambda words: [x.lower().decode('utf-8') for x in words]
+        #encode = lambda words: [x.lower().decode('utf-8') for x in words]
+        encode = lambda words: [x.lower() for x in words]
 
     sections = defaultdict(list)
     evaluation_words = [sections[section].append(encode(words)) for section, words in
@@ -108,7 +110,7 @@ if __name__ == "__main__":
     #logging.info('Semantic accuracy: %.2f; Syntactic accuracy: %.2f' % (sem_acc, syn_acc))
 
 
-    model = Glove.load(args.model)
+    model = Glove.load_stanford(args.emb_file_name)
     analogy_test_by_glove(model, args.analogy_test_data, args.to_encode, args.no_threads)
 
 
