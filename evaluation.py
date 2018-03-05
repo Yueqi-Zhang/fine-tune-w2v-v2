@@ -43,7 +43,7 @@ def evaluation(emb_file_path, similarity_test_paths, synset_paths, analogy_paths
             logging.info('test score: %0.6f' % score.correlation)
             if score.correlation > best_scores.get(similarity_test_path, 0):
                 save_flag = True
-                best_scores[similarity_test_path] = score
+                best_scores[similarity_test_path] = score.correlation
 
 
     emb = gensim.models.KeyedVectors.load_word2vec_format(emb_file_path, binary=False, unicode_errors='ignore')
@@ -67,7 +67,7 @@ def evaluation(emb_file_path, similarity_test_paths, synset_paths, analogy_paths
         # test analogy
         for analogy_path in analogy_paths.split("|"):
             logging.info('TEST ANALOGY. To evaluate embedding %s and analogy_test_file %s:' % (emb_file_path, os.path.basename(analogy_path)))
-            mean_rank_overall, accuracy_overall = analogy_test_by_glove(emb, analogy_path, to_encode=False)
+            mean_rank_overall, accuracy_overall = analogy_test_by_glove(emb, analogy_path, to_encode=False, no_threads=4)
 
             best_mean_rank, best_accuracy = best_scores.get(analogy_path, [0, 0])
             if accuracy_overall > best_accuracy:

@@ -252,6 +252,12 @@ if __name__ == '__main__':
     parser.add_argument('--log_path', type=str, default='train.log')
     parser.add_argument('--sample_rate', type=float, default=1)
     args, _ = parser.parse_known_args()
+    if args.similarity_test_paths == 'None':
+        args.similarity_test_paths = None
+    if args.synset_paths == 'None':
+        args.synset_paths = None
+    if args.analogy_test_paths == 'None':
+        args.analogy_test_paths = None
 
     logging_set(args.log_path)
     #w2v = Word2Vec(input_file_name=sys.argv[1], input_wvectors = sys.argv[2], input_cvectors = sys.argv[3], output_file_name=sys.argv[4])
