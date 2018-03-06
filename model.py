@@ -14,7 +14,7 @@ class FineTuneModel(nn.Module):
         v_embedding: Embedding for neibor words.
     """
 
-    def __init__(self, emb_size, emb_dimension, p, sigma):
+    def __init__(self, emb_size, emb_dimension, p, sigma, wvector, cvector):
         """Initialize model parameters.
 
         Apply for two embedding layers.
@@ -35,16 +35,8 @@ class FineTuneModel(nn.Module):
         self.i_embeddings = nn.Embedding(emb_size, emb_dimension) # unchange pretrain embedding
         self.u_embeddings = nn.Embedding(emb_size, emb_dimension) # fine-tune embedding
         self.v_embeddings = nn.Embedding(emb_size, emb_dimension) # context embedding
-        #self.init_emb()
 
-    def init_emb(self, wvector, cvector):
-        """Initialize embedding weight like word2vec.
-
-        The u_embedding is a uniform distribution in [-0.5/em_size, 0.5/emb_size], and the elements of v_embedding are zeroes.
-
-        Returns:
-            None
-        """
+        # to init emb
         #initrange = 0.5 / self.emb_dimension
         self.i_embeddings.weight = nn.Parameter(torch.Tensor(wvector))
         self.i_embeddings.weight.requires_grad = False
@@ -52,6 +44,7 @@ class FineTuneModel(nn.Module):
         self.v_embeddings.weight = nn.Parameter(torch.Tensor(cvector))
         #self.u_embeddings.weight.data.uniform_(-initrange, initrange)
         #self.v_embeddings.weight.data.uniform_(-0, 0)
+
 
     def forward(self, batch_u, batch_n, batch_v_pad, batch_v_mask, batch_vsp):
         """Forward process.
@@ -90,27 +83,7 @@ class FineTuneModel(nn.Module):
         score_vsp = self.sigma*torch.sum(torch.mul(emb_vsp_diff, emb_vsp_diff).squeeze())
         return score1+score_vsp
 
-    def save_embedding(self, id2word, file_name, use_cuda):
-        """Save all embeddings to file.
 
-        As this class only record word id, so the map from id to word has to be transfered from outside.
-
-        Args:
-            id2word: map from word id to word.
-            file_name: file name.
-        Returns:
-            None.
-        """
-        if use_cuda:
-            embedding = self.u_embeddings.weight.cpu().data.numpy()
-        else:
-            embedding = self.u_embeddings.weight.data.numpy()
-        fout = open(file_name, 'w')
-        fout.write('%d %d\n' % (len(id2word), self.emb_dimension))
-        for wid, w in id2word.items():
-            e = embedding[wid]
-            e = ' '.join(map(lambda x: str(x), e))
-            fout.write('%s %s\n' % (w, e))
 
 
 def test():

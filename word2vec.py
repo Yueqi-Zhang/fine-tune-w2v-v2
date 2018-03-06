@@ -104,11 +104,13 @@ class Word2Vec:
 
         #self.kneighbor = KNeighbor(input_wvectors, self.topfrequent, self.data.word2id, self.data.id2word)
         self.kneighbor = KNeighbor(input_wvectors, self.topfrequent, self.word2id, self.id2word)
-        self.fine_tune_model = FineTuneModel(self.emb_size, self.emb_dimension, self.p, self.sigma)
-        self.fine_tune_model.init_emb(self.input_wvect, self.input_cvect)
+        self.fine_tune_model = FineTuneModel(self.emb_size, self.emb_dimension, self.p, self.sigma, self.input_wvect, self.input_cvect)
+        self.fine_tune_model = nn.DataParallel(self.fine_tune_model)
         self.use_cuda = torch.cuda.is_available()
+        '''
         if self.use_cuda:
             self.fine_tune_model.cuda()
+        '''
 
         self.optimizer = optim.SGD(
             filter(lambda p: p.requires_grad, self.fine_tune_model.parameters()), lr=self.initial_lr, momentum=0.9)
@@ -195,7 +197,7 @@ class Word2Vec:
 
                 if i % self.batch_num_to_valid == 0:
                     logging.info('epoch%d_batch%d, evaluating...' % (epoch, i))
-                    self.fine_tune_model.save_embedding(self.id2word, tmp_emb_path, self.use_cuda)
+                    self.save_embedding(self.id2word, tmp_emb_path, self.use_cuda)
 
                     best_scores, save_flag = evaluation(tmp_emb_path, similarity_test_paths, synset_paths, analogy_paths, best_scores)
                     if save_flag == True:
@@ -213,12 +215,34 @@ class Word2Vec:
                     previous_lr = self.initial_lr
             #self.fine_tune_model.save_embedding(self.id2word, self.output_file_name + "_%d" % epoch, self.use_cuda)
             logging.info('final evaluating...')
-            self.fine_tune_model.save_embedding(self.id2word, tmp_emb_path, self.use_cuda)
+            self.save_embedding(self.id2word, tmp_emb_path, self.use_cuda)
             best_scores, save_flag = evaluation(tmp_emb_path, similarity_test_paths, synset_paths, analogy_paths, best_scores)
             if save_flag == True:
                 emb_save_path = self.output_file_name + "_epoch%d" % epoch
                 shutil.move(tmp_emb_path, emb_save_path)
                 logging.info('Save current embedding to %s' % emb_save_path)
+
+    def save_embedding(self, id2word, file_name, use_cuda):
+        """Save all embeddings to file.
+
+        As this class only record word id, so the map from id to word has to be transfered from outside.
+
+        Args:
+            id2word: map from word id to word.
+            file_name: file name.
+        Returns:
+            None.
+        """
+        if use_cuda:
+            embedding = self.fine_tune_model.module.u_embeddings.weight.cpu().data.numpy()
+        else:
+            embedding = self.fine_tune_model.module.u_embeddings.weight.data.numpy()
+        fout = open(file_name, 'w')
+        fout.write('%d %d\n' % (len(id2word), self.fine_tune_model.module.emb_dimension))
+        for wid, w in id2word.items():
+            e = embedding[wid]
+            e = ' '.join(map(lambda x: str(x), e))
+            fout.write('%s %s\n' % (w, e))
 
 
 
