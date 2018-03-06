@@ -58,12 +58,12 @@ def evaluation(emb_file_path, similarity_test_paths, synset_paths, analogy_paths
                 save_flag = True
                 best_scores[synset_path] = score
 
-    emb_path_glove = emb_file_path + '.glove'
-    if not os.path.isfile(emb_path_glove):
-        rewrite_word2vec_to_glove(emb_file_path, emb_path_glove)    
-    emb = Glove.load_stanford(emb_path_glove)
 
     if analogy_paths is not None:
+        emb_path_glove = emb_file_path + '.glove'
+        rewrite_word2vec_to_glove(emb_file_path, emb_path_glove)    
+        emb = Glove.load_stanford(emb_path_glove)
+
         # test analogy
         for analogy_path in analogy_paths.split("|"):
             logging.info('TEST ANALOGY. To evaluate embedding %s and analogy_test_file %s:' % (emb_file_path, os.path.basename(analogy_path)))
@@ -79,6 +79,8 @@ def evaluation(emb_file_path, similarity_test_paths, synset_paths, analogy_paths
                 best_mean_rank = mean_rank_overall
 
             best_scores[analogy_path] = [best_mean_rank, best_accuracy]
+
+        os.remove(emb_path_glove)
 
     return best_scores, save_flag
 

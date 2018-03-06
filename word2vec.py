@@ -105,12 +105,10 @@ class Word2Vec:
         #self.kneighbor = KNeighbor(input_wvectors, self.topfrequent, self.data.word2id, self.data.id2word)
         self.kneighbor = KNeighbor(input_wvectors, self.topfrequent, self.word2id, self.id2word)
         self.fine_tune_model = FineTuneModel(self.emb_size, self.emb_dimension, self.p, self.sigma, self.input_wvect, self.input_cvect)
-        self.fine_tune_model = nn.DataParallel(self.fine_tune_model)
         self.use_cuda = torch.cuda.is_available()
-        '''
         if self.use_cuda:
             self.fine_tune_model.cuda()
-        '''
+        self.fine_tune_model = nn.DataParallel(self.fine_tune_model)
 
         self.optimizer = optim.SGD(
             filter(lambda p: p.requires_grad, self.fine_tune_model.parameters()), lr=self.initial_lr, momentum=0.9)
@@ -186,7 +184,7 @@ class Word2Vec:
 
                 self.optimizer.zero_grad()
                 loss = self.fine_tune_model.forward(batch_u, batch_n, batch_v_pad, batch_v_mask, batch_vsp)
-                loss.backward()
+                loss.sum().backward()
                 torch.nn.utils.clip_grad_norm(self.fine_tune_model.parameters(), self.clip)
                 self.optimizer.step()
                 tot_loss += loss.data[0]
