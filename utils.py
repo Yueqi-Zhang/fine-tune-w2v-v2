@@ -148,7 +148,6 @@ def get_preprocessed_pairs(pair_path, format='pkl', sample_rate=0.1):
         #for pair_file_path in tqdm.tqdm(pair_file_paths):
         for pair_file_path in tqdm.tqdm(pair_file_paths):
             if os.path.basename(pair_file_path).startswith('pair_'):
-                logging.debug('%s trained')
                 if format == 'txt':
                     with codecs.open(pair_file_path, 'r', encoding='utf-8') as fin:
                         for line in fin:

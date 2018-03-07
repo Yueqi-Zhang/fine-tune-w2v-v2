@@ -8,9 +8,11 @@ import argparse
 import gensim
 import os
 
+from glove import Glove, metrics
+
 from sim_test1 import read_vectors, calc_sim
 from sim_test2 import read_synset, synset_test
-from analogy_test import analogy_test
+from analogy_test import analogy_test_by_glove, rewrite_word2vec_to_glove
 
 import debugger
 
@@ -41,7 +43,7 @@ def evaluation(emb_file_path, similarity_test_paths, synset_paths, analogy_paths
             logging.info('test score: %0.6f' % score.correlation)
             if score.correlation > best_scores.get(similarity_test_path, 0):
                 save_flag = True
-                best_scores[similarity_test_path] = score
+                best_scores[similarity_test_path] = score.correlation
 
 
     emb = gensim.models.KeyedVectors.load_word2vec_format(emb_file_path, binary=False, unicode_errors='ignore')
@@ -56,23 +58,29 @@ def evaluation(emb_file_path, similarity_test_paths, synset_paths, analogy_paths
                 save_flag = True
                 best_scores[synset_path] = score
 
+
     if analogy_paths is not None:
+        emb_path_glove = emb_file_path + '.glove'
+        rewrite_word2vec_to_glove(emb_file_path, emb_path_glove)    
+        emb = Glove.load_stanford(emb_path_glove)
+
         # test analogy
         for analogy_path in analogy_paths.split("|"):
             logging.info('TEST ANALOGY. To evaluate embedding %s and analogy_test_file %s:' % (emb_file_path, os.path.basename(analogy_path)))
-            sem_acc, syn_acc = analogy_test(emb, analogy_path)
-            logging.info('Semantic accuracy: %.6f; Syntactic accuracy: %.6f' % (sem_acc, syn_acc))
+            mean_rank_overall, accuracy_overall = analogy_test_by_glove(emb, analogy_path, to_encode=False, no_threads=4)
 
-            best_sem_acc, best_syn_acc = best_scores.get(analogy_path, [0, 0])
-            if sem_acc > best_sem_acc:
+            best_mean_rank, best_accuracy = best_scores.get(analogy_path, [0, 0])
+            if accuracy_overall > best_accuracy:
                 save_flag = True
-                best_sem_acc = sem_acc
+                best_accuracy = accuracy_overall
 
-            if syn_acc > best_syn_acc:
+            if mean_rank_overall > best_mean_rank:
                 save_flag = True
-                best_syn_acc = syn_acc
+                best_mean_rank = mean_rank_overall
 
-            best_scores[analogy_path] = [best_sem_acc, best_syn_acc]
+            best_scores[analogy_path] = [best_mean_rank, best_accuracy]
+
+        os.remove(emb_path_glove)
 
     return best_scores, save_flag
 
