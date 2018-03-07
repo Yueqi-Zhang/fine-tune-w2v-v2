@@ -86,7 +86,7 @@ class FineTuneModel(nn.Module):
         #emb_vsp_o = torch.mul(emb_vsp_o, batch_vsp_mask)
         emb_vsp_n = self.u_embeddings(batch_vsp)
         #emb_vsp_n = torch.mul(emb_vsp_n, batch_vsp_mask)
-        emb_vsp_diff = emb_vsp_n-emb_vsp_o
+        emb_vsp_diff = emb_vsp_n-emb_vsp_o # self.u_embeddings.weight-self.i_embeddings.weight
         score_vsp = self.sigma*torch.sum(torch.mul(emb_vsp_diff, emb_vsp_diff).squeeze())
         return score1+score_vsp
 
