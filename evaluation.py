@@ -8,7 +8,7 @@ import argparse
 import gensim
 import os
 
-from glove import Glove, metrics
+#from glove import Glove, metrics
 
 from sim_test1 import read_vectors, calc_sim
 from sim_test2 import read_synset, synset_test

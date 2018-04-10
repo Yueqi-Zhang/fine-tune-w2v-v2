@@ -17,7 +17,7 @@ def Topfreq(freqence):
 
     """
     sortd = sorted(freqence.items(), key=lambda x: x[1], reverse=True)
-    sortd = sortd[:10000]
+    #sortd = sortd[:10000]
     tf = [x for x, y in sortd]
     return tf
 

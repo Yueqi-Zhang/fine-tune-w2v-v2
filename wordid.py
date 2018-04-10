@@ -1,7 +1,7 @@
 from input_data import InputData
 import codecs
 
-input_file_name = 'data/chinesegigaword.seg.new'
+input_file_name = 'data/chinesegigaword.seg.rewrite.new'
 min_count = 30
 data = InputData(input_file_name, min_count)
 path_o1 = 'data/word2id.txt'

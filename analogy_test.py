@@ -3,7 +3,7 @@ from utils import logging_set
 from gensim.models import Word2Vec
 import argparse
 import gensim
-from glove import Glove, metrics  # download from https://github.com/maciejkula/glove-python.git, python setup.py install
+#from glove import Glove, metrics  # download from https://github.com/maciejkula/glove-python.git, python setup.py install
 from collections import defaultdict
 import numpy as np
 import debugger

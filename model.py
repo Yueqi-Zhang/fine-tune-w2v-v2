@@ -61,6 +61,7 @@ class FineTuneModel(nn.Module):
         Returns:
             Loss of this process, a pytorch variable.
         """
+        #diff = self.u_embeddings.weight - self.i_embeddings.weight
         emb_u = self.u_embeddings(batch_u) # center word  [bs, emb_dim]
         emb_n = self.u_embeddings(batch_n) # neighbor word
         emb_v = self.v_embeddings(batch_v_pad) # context word [bs, 2*window_size, emb_dim]
