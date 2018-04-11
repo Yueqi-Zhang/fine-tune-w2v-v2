@@ -1,7 +1,9 @@
 import os
-from utils import load_from_pkl, dump_to_pkl
+from utils import load_from_pkl, dump_to_pkl, logging_set
 from tqdm import tqdm
 import logging
+
+logging_set('merge_pair.log')
 
 path = 'data/pair'
 files= os.listdir(path)
