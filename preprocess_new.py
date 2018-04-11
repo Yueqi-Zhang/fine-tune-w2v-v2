@@ -39,35 +39,33 @@ class Word2Vec:
         pairs = dict()
         word_count = len(word2id)
         file_name = input_file_name
-        words = [id2word[x] for x in ids]
+        #words = [id2word[x] for x in ids]
         with codecs.open(file_name, 'r') as f:
             for lines in f:
                 lines = lines.strip().split()
-                for word in words: #words表示vocabulary，word就是vocabulary中的每一个词
-                    if word in lines:
-                        sentence_ids = []
-                        for w in lines:#lines是corpus中的句子，这里面的句子是含有word的句子，这个循环是把句子转换成数字表示
-                            try:
-                                sentence_ids.append(word2id[w])
-                            except:
-                                continue
-                        i = sentence_ids.index(word2id[word])
-                        u = word2id[word]
-                        c = []
-                        for j, v in enumerate(sentence_ids[max(i - window_size, 0):i + window_size + 1]):#这个地方就是生成pairs，对于每一个句子按窗口大小生成若干pairs
-                            assert u < word_count
-                            assert v < word_count
-                            if i < window_size & j == i:
-                                continue
-                            elif i >= window_size & j == window_size:
-                                continue
-                            else:
-                                c.append(v)
-                        tu = tuple([u]+c) # u:center word, v:context
-                        if tu not in pairs:
-                            pairs[tu] = 1
+                sentence_ids = []
+                for w in lines:  # lines是corpus中的句子，这个循环是把句子转换成数字表示
+                    try:
+                        sentence_ids.append(word2id[w])
+                    except:
+                        continue
+                for i in sentence_ids: #对于句中的每一个词，按窗口大小生成pairs
+                    u = sentence_ids[i]
+                    c = []
+                    for j, v in enumerate(sentence_ids[max(i - window_size, 0):i + window_size + 1]):#这个地方就是生成pairs，对于每一个句子按窗口大小生成若干pairs
+                        assert u < word_count
+                        assert v < word_count
+                        if i < window_size & j == i:
+                            continue
+                        elif i >= window_size & j == window_size:
+                            continue
                         else:
-                            pairs[tu] += 1
+                            c.append(v)
+                    tu = tuple([u]+c) # u:center word, v:context
+                    if tu not in pairs:
+                        pairs[tu] = 1
+                    else:
+                        pairs[tu] += 1
         return pairs
 
 if __name__ == '__main__':
