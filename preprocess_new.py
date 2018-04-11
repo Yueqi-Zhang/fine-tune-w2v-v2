@@ -43,10 +43,10 @@ class Word2Vec:
         with codecs.open(file_name, 'r') as f:
             for lines in f:
                 lines = lines.strip().split()
-                for word in words:
+                for word in words: #words表示vocabulary，word就是vocabulary中的每一个词
                     if word in lines:
                         sentence_ids = []
-                        for w in lines:
+                        for w in lines:#lines是corpus中的句子，这里面的句子是含有word的句子，这个循环是把句子转换成数字表示
                             try:
                                 sentence_ids.append(word2id[w])
                             except:
@@ -54,7 +54,7 @@ class Word2Vec:
                         i = sentence_ids.index(word2id[word])
                         u = word2id[word]
                         c = []
-                        for j, v in enumerate(sentence_ids[max(i - window_size, 0):i + window_size + 1]):
+                        for j, v in enumerate(sentence_ids[max(i - window_size, 0):i + window_size + 1]):#这个地方就是生成pairs，对于每一个句子按窗口大小生成若干pairs
                             assert u < word_count
                             assert v < word_count
                             if i < window_size & j == i:
