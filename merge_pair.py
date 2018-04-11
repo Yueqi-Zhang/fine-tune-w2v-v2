@@ -23,5 +23,5 @@ for file in tqdm(files):
                     pairs[key] = pair[key]
         logging.info("current total pair size: %d" % (len(pairs)))
 
-output_file_name = 'data/pairs'
+output_file_name = 'data/pairs.pkl'
 dump_to_pkl(pairs, output_file_name)
