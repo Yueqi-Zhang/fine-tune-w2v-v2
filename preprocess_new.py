@@ -12,8 +12,8 @@ class Word2Vec:
                  input_word2id,
                  input_id2word,
                  input_vocabulary,
-                 output_kn_file_name,
-                 output_pairs_file_name,
+                 #output_kn_file_name,
+                 output_file_name,
                  window_size=1,
                  min_count=30):
         #data = InputData(input_file_name, min_count)
@@ -30,10 +30,10 @@ class Word2Vec:
             for lines in f:
                 vocabulary.append(int(lines.strip()))
 
-        kneighbor = KNeighbor(input_wvectors, vocabulary, word2id, id2word)
-        dump_to_pkl(kneighbor, output_kn_file_name)
+        #kneighbor = KNeighbor(input_wvectors, vocabulary, word2id, id2word)
+        #dump_to_pkl(kneighbor, output_kn_file_name)
         pro_pairs = self.Get_pairs(input_file_name, word2id, id2word, vocabulary, window_size)
-        dump_to_pkl(pro_pairs, output_pairs_file_name)
+        dump_to_pkl(pro_pairs, output_file_name)
 
     def Get_pairs(self, input_file_name, word2id, id2word, ids, window_size):
         pairs = dict()
@@ -71,4 +71,4 @@ class Word2Vec:
         return pairs
 
 if __name__ == '__main__':
-    w2v = Word2Vec(input_file_name=sys.argv[1], input_wvectors = sys.argv[2], input_word2id = sys.argv[3], input_id2word = sys.argv[4], input_vocabulary = sys.argv[5], output_kn_file_name=sys.argv[6], output_pairs_file_name=sys.argv[7])
+    w2v = Word2Vec(input_file_name=sys.argv[1], input_wvectors = sys.argv[2], input_word2id = sys.argv[3], input_id2word = sys.argv[4], input_vocabulary = sys.argv[5], output_file_name=sys.argv[6])
