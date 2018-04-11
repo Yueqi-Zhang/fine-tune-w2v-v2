@@ -49,7 +49,7 @@ class Word2Vec:
                         sentence_ids.append(word2id[w])
                     except:
                         continue
-                for i in sentence_ids: #对于句中的每一个词，按窗口大小生成pairs
+                for i in range(len(sentence_ids)): #对于句中的每一个词，按窗口大小生成pairs
                     u = sentence_ids[i]
                     c = []
                     for j, v in enumerate(sentence_ids[max(i - window_size, 0):i + window_size + 1]):#这个地方就是生成pairs，对于每一个句子按窗口大小生成若干pairs
