@@ -47,9 +47,29 @@ class NSselect:
                             pairs[key] = pair[key]
                 logging.info("current total pair size: %d" % (len(pairs)))
         logging.info("start calculate score")
-        score = self.select(pairs, kneighbor)
+        score1 = self.select(pairs, kneighbor)
+        score2 = self.select_new(pairs, kneighbor)
+        if score1 == score2:
+            print('equal!')
         logging.info("start saving")
         dump_to_pkl(score, output_file_name)
+
+    def select_new(self, pairs, kneighbor):
+        score = dict()
+        for keyp in pairs.keys():
+            if keyp[0] in kneighbor:
+                if not keyp[0] in score:
+                    score[keyp[0]] = []
+                s = 0
+                i = 0
+                for value in kneighbor[keyp[0]]:
+                    replace = tuple([value] + keyp[1:])
+                    if replace in pairs:
+                        s += pairs[replace]/pairs[keyp]
+                    else:
+                        s += 0
+                    i += 1
+                score[keyp[0]].append([s,i])
 
 
     def select(self, pairs, kneighbor):
