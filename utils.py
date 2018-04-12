@@ -38,7 +38,7 @@ def KNeighbor(file_name, words, word2id, id2word):
     for word in words:
         neighbor[word] = []
 
-        for _, (w, _) in enumerate(vectors.most_similar(positive=[id2word[word]], topn=10)):
+        for _, (w, _) in enumerate(vectors.most_similar(positive=[id2word[word]], topn=20)):
             neighbor[word].append(word2id[w])
     return neighbor
 
