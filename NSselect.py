@@ -13,6 +13,7 @@ class NSselect:
                  input_id2word,
                  input_vocabulary,
                  pair_file_path,
+                 kn_file_name,
                  output_file_name,
                  topn = 20):
         word2id = dict()
@@ -30,6 +31,7 @@ class NSselect:
 
         self.topn = topn
         kneighbor = KNeighbor(input_wvectors, vocabulary, word2id, id2word)
+        dump_to_pkl(kneighbor, kn_file_name)
 
         logging_set('NSselect.log')
         files = os.listdir(pair_file_path)[1:]
@@ -100,4 +102,4 @@ class NSselect:
 
 
 if __name__ == '__main__':
-    ns = NSselect(input_wvectors=sys.argv[1], input_word2id = sys.argv[2], input_id2word = sys.argv[3], input_vocabulary = sys.argv[4], pair_file_path=sys.argv[5], output_file_name=sys.argv[6])
+    ns = NSselect(input_wvectors=sys.argv[1], input_word2id = sys.argv[2], input_id2word = sys.argv[3], input_vocabulary = sys.argv[4], pair_file_path=sys.argv[5], kn_file_name = sys.argv[6], output_file_name=sys.argv[7])
