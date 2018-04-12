@@ -31,7 +31,7 @@ class NSselect:
         self.topn = topn
         kneighbor = KNeighbor(input_wvectors, vocabulary, word2id, id2word)
 
-        logging_set('merge_pair.log')
+        logging_set('NSselect.log')
         files = os.listdir(pair_file_path)[1:]
         pairs = dict()
         for file in tqdm(files):
