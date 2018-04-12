@@ -7,7 +7,7 @@ import gc
 logging_set('merge_pair.log')
 
 path = 'data/pair'
-files= os.listdir(path)
+files= os.listdir(path)[1:]
 pairs = dict()
 for idx, file in enumerate(tqdm(files)):
     if idx % 20 == 0:
@@ -29,3 +29,4 @@ for idx, file in enumerate(tqdm(files)):
 
 output_file_name = 'data/pairs.pkl'
 dump_to_pkl(pairs, output_file_name)
+
