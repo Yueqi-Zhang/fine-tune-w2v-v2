@@ -2,13 +2,17 @@ import os
 from utils import load_from_pkl, dump_to_pkl, logging_set
 from tqdm import tqdm
 import logging
+import gc
 
 logging_set('merge_pair.log')
 
 path = 'data/pair'
 files= os.listdir(path)
 pairs = dict()
-for file in tqdm(files):
+for idx, file in enumerate(tqdm(files)):
+    if idx % 20 == 0:
+        gc.collect()    #手动触发 内存回收
+
     if not os.path.isdir(file):
         pair_file_path = path+"/"+file
         pair = load_from_pkl(pair_file_path)
