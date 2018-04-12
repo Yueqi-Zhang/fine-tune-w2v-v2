@@ -2,7 +2,7 @@ import os
 from utils import load_from_pkl, dump_to_pkl
 
 path = 'data/pair'
-files= os.listdir(path)
+files= os.listdir(path)[1:]
 pairs = dict()
 for file in files:
     if not os.path.isdir(file):
@@ -17,5 +17,5 @@ for file in files:
                 else:
                     pairs[key] = pair[key]
 
-output_file_name = 'data/pairs'
+output_file_name = 'data/pair/pairs_merge.pkl'
 dump_to_pkl(pairs, output_file_name)
