@@ -4,7 +4,7 @@ import os
 from tqdm import tqdm
 import logging
 from utils import load_from_pkl, KNeighbor, dump_to_pkl, logging_set
-
+import debugger
 
 class NSselect:
     def __init__(self,
@@ -30,11 +30,13 @@ class NSselect:
                 vocabulary.append(int(lines.strip()))
 
         self.topn = topn
+        logging.info("get kneighbors...")
         kneighbor = KNeighbor(input_wvectors, vocabulary, word2id, id2word)
         #dump_to_pkl(kneighbor, kn_file_name)
+        logging.info("kneightbors got.")
 
-        logging_set('NSselect.log')
-        files = os.listdir(pair_file_path)[1:]
+        logging.info("get pairs...")
+        files = os.listdir(pair_file_path)
         pairs = dict()
         for file in tqdm(files):
             if not os.path.isdir(file):
@@ -50,6 +52,7 @@ class NSselect:
                         else:
                             pairs[key] = pair[key]
                 logging.info("current total pair size: %d" % (len(pairs)))
+        logging.info("pairs got")
         logging.info("start calculate score")
 
         score = self.select_new(pairs, kneighbor, self.topn)
@@ -59,7 +62,9 @@ class NSselect:
 
     def select_new(self, pairs, kneighbor, topn):
         score = dict()
+        logging.info("start sorting...")
         key_sorted = sorted(pairs.keys())
+        logging.info("sort finished.")
         i = 0
         for keyp in tqdm(key_sorted):
             if not keyp[0] in score:
@@ -72,10 +77,10 @@ class NSselect:
                 else:
                     s = 0
                 score_cur_key.append(s)
-            if key_sorted[i][1] != key_sorted[i+1][1]:
+            if (i != len(key_sorted) - 1 and key_sorted[i][0] != key_sorted[i+1][0]) or (i == len(key_sorted) - 1):
                 iter = len(score_cur_key) / topn
-                for i in range(topn):
-                    s_f = sum([score_cur_key[x*topn+i] for x in range(int(iter))])/iter
+                for j in range(topn):
+                    s_f = sum([score_cur_key[x*topn+j] for x in range(int(iter))])/iter
                     score[keyp[0]].append(s_f)
             i += 1
 
@@ -103,4 +108,5 @@ class NSselect:
 
 
 if __name__ == '__main__':
+    logging_set('NSselect.log')
     ns = NSselect(input_wvectors=sys.argv[1], input_word2id = sys.argv[2], input_id2word = sys.argv[3], input_vocabulary = sys.argv[4], pair_file_path=sys.argv[5], kn_file_name = sys.argv[6], output_file_name=sys.argv[7])
