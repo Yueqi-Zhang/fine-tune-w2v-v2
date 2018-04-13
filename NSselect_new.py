@@ -63,7 +63,7 @@ class NSselect:
     def select_new(self, pairs, kneighbor, topn):
         score = dict()
         logging.info("start sorting...")
-        key_sorted = sorted(pairs.keys())
+        key_sorted = sorted(pairs.keys(), key=lambda tup: tup[0])
         logging.info("sort finished.")
         i = 0
         for keyp in tqdm(key_sorted):
