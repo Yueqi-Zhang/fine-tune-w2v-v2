@@ -60,7 +60,7 @@ class NSselect:
     def select_new(self, pairs, kneighbor, topn):
         score = dict()
         key_sorted = sorted(pairs.keys())
-        i = 0
+        k = 0
         for keyp in tqdm(key_sorted):
             if not keyp[0] in score:
                 score[keyp[0]] = []
@@ -77,7 +77,7 @@ class NSselect:
                 for i in range(topn):
                     s_f = sum([score_cur_key[x*topn+i] for x in range(int(iter))])/iter
                     score[keyp[0]].append(s_f)
-            i += 1
+            k += 1
 
         return score
 
