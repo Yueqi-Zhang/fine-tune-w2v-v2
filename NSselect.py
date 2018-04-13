@@ -58,7 +58,7 @@ class NSselect:
 
     def select_new(self, pairs, kneighbor, topn):
         score = dict()
-        for keyp in pairs.keys():
+        for keyp in tqdm(pairs.keys()):
             if keyp[0] in kneighbor:
                 if not keyp[0] in score:
                     score[keyp[0]] = []
