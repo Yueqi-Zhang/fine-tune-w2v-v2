@@ -72,10 +72,10 @@ class NSselect:
                 else:
                     s = 0
                 score_cur_key.append(s)
-            if key_sorted[i][1] != key_sorted[i+1][1]:
+            if i != len(key_sorted) - 1 and key_sorted[i][1] != key_sorted[i+1][1]:
                 iter = len(score_cur_key) / topn
-                for i in range(topn):
-                    s_f = sum([score_cur_key[x*topn+i] for x in range(int(iter))])/iter
+                for j in range(topn):
+                    s_f = sum([score_cur_key[x*topn+j] for x in range(int(iter))])/iter
                     score[keyp[0]].append(s_f)
             i += 1
 
