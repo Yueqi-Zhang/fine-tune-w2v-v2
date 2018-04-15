@@ -31,12 +31,13 @@ class NSselect:
 
         self.topn = topn
         logging.info("get kneighbors...")
-        kneighbor = KNeighbor(input_wvectors, vocabulary, word2id, id2word)
+        kneighbor = load_from_pkl(kn_file_name)
+        #kneighbor = KNeighbor(input_wvectors, vocabulary, word2id, id2word)
         #dump_to_pkl(kneighbor, kn_file_name)
         logging.info("kneightbors got.")
 
         logging.info("get pairs...")
-        files = os.listdir(pair_file_path)
+        files = os.listdir(pair_file_path)[1:]
         pairs = dict()
         for file in tqdm(files):
             if not os.path.isdir(file):
@@ -56,6 +57,8 @@ class NSselect:
         logging.info("start calculate score")
 
         score = self.select_new(pairs, kneighbor, self.topn)
+        logging.info(len(score))
+        logging.info(len(word2id))
         #score1 = self.select(pairs, kneighbor)
         logging.info("start saving")
         dump_to_pkl(score, output_file_name)
@@ -63,7 +66,7 @@ class NSselect:
     def select_new(self, pairs, kneighbor, topn):
         score = dict()
         logging.info("start sorting...")
-        key_sorted = sorted(pairs.keys())
+        key_sorted = sorted(pairs.keys(), key=lambda tup: tup[0])
         logging.info("sort finished.")
         i = 0
         for keyp in tqdm(key_sorted):
