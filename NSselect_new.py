@@ -56,11 +56,14 @@ class NSselect:
         logging.info("pairs got")
 
         logging.info("len(word2id): %d" % len(word2id))
-        keys_before_sort_set = set([key[0] for key in pairs.keys])
-        id_missing_in_pairs = word2id.values() - keys_before_sort_set
-        if len(id_missing_in_pairs) > 0:
-            dump_to_pkl(id_missing_in_pairs, './data/id_missing_in_pairs.pkl')
+        keys_before_sort_set = set([key[0] for key in pairs.keys()])
+        logging.info("length of pair.keys[0]: %d" % len(keys_before_sort_set))
+        id_missing_in_pairs = set(word2id.values()) - keys_before_sort_set
         logging.info("len(id_missing_in_pairs): %d" % (len(id_missing_in_pairs)))
+        if len(id_missing_in_pairs) > 0:
+            logging.info("missing word in pairs: %s" % str(id_missing_in_pairs))
+            #dump_to_pkl(id_missing_in_pairs, './data/id_missing_in_pairs.pkl')
+
         logging.info("start calculate score")
 
         score = self.select_new(pairs, kneighbor, self.topn)
