@@ -48,7 +48,7 @@ class PSNS:
     def get_psns(self, score, id2word, kneighbor, threshold):
         ps = dict()
         for id in score.keys():
-                ps[id2word[id]] = []
+            ps[id2word[id]] = []
             for i in range(len(score[id])):
                 if score[id][i] >= threshold:
                     ps[id2word[id]].append(id2word(kneighbor[id][i]))
