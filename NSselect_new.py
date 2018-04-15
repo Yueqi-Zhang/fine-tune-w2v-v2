@@ -54,11 +54,18 @@ class NSselect:
                             pairs[key] = pair[key]
                 logging.info("current total pair size: %d" % (len(pairs)))
         logging.info("pairs got")
+
+        logging.info("len(word2id): %d" % len(word2id))
+        keys_before_sort_set = set([key[0] for key in pairs.keys])
+        id_missing_in_pairs = word2id.values() - keys_before_sort_set
+        if len(id_missing_in_pairs) > 0:
+            dump_to_pkl(id_missing_in_pairs, './data/id_missing_in_pairs.pkl')
+        logging.info("len(id_missing_in_pairs): %d" % (len(id_missing_in_pairs)))
         logging.info("start calculate score")
 
         score = self.select_new(pairs, kneighbor, self.topn)
-        logging.info(len(score))
-        logging.info(len(word2id))
+        logging.info("len(score): %d" % len(score))
+
         #score1 = self.select(pairs, kneighbor)
         logging.info("start saving")
         dump_to_pkl(score, output_file_name)
@@ -68,6 +75,8 @@ class NSselect:
         logging.info("start sorting...")
         key_sorted = sorted(pairs.keys(), key=lambda tup: tup[0])
         logging.info("sort length: %d" % len(key_sorted))
+        keys_after_sort_set = set([key[0] for key in key_sorted])
+        logging.info('number of keys after sort: %d' % len(keys_after_sort_set))
         logging.info("sort finished.")
         i = 0
         for keyp in tqdm(key_sorted):
@@ -87,7 +96,6 @@ class NSselect:
                     s_f = sum([score_cur_key[x*topn+j] for x in range(int(iter))])/iter
                     score[keyp[0]].append(s_f)
             i += 1
-
         return score
 
 
