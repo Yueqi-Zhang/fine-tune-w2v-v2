@@ -37,7 +37,7 @@ class NSselect:
         logging.info("kneightbors got.")
 
         logging.info("get pairs...")
-        files = os.listdir(pair_file_path)[1:]
+        files = os.listdir(pair_file_path)
         pairs = dict()
         for file in tqdm(files):
             if not os.path.isdir(file):
@@ -67,6 +67,7 @@ class NSselect:
         score = dict()
         logging.info("start sorting...")
         key_sorted = sorted(pairs.keys(), key=lambda tup: tup[0])
+        logging.info("sort length: %d" % len(key_sorted))
         logging.info("sort finished.")
         i = 0
         for keyp in tqdm(key_sorted):
