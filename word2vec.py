@@ -115,10 +115,16 @@ class Word2Vec:
 
 
     def train(self, similarity_test_paths, synset_paths, analogy_paths, sample_rate=1):
-        """Multiple training.
+        """
+
+        Args:
+            similarity_test_paths:
+            synset_paths:
+            analogy_paths:
+            sample_rate:
 
         Returns:
-            None.
+
         """
         #pair_count = self.data.evaluate_pair_count(self.window_size)
         #pro_pairs = Get_pairs(self.data, self.topfrequent, self.kneighbor, self.window_size)
