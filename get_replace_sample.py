@@ -37,7 +37,7 @@ class NSselect:
         logging.info("kneightbors got.")
 
         logging.info("get pairs...")
-        files = os.listdir(pair_file_path)[1:]
+        files = os.listdir(pair_file_path)
         pairs = dict()
         for file in tqdm(files):
             if not os.path.isdir(file):
