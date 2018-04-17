@@ -1,6 +1,6 @@
 import codecs
 import sys
-from utils import load_from_pkl
+from utils import load_from_pkl, dump_to_pkl
 
 class PSNS:
     def __init__(self,
@@ -8,18 +8,23 @@ class PSNS:
                  path_score,
                  path_id2word,
                  path_kneighbor,
-                 threshold = 0.01):
+                 threshold_ns = 0.005,
+                 threshold_ps = 0.2):
 
         self.path_sim_word = path_sim_word
         self.path_score = path_score
         self.path_id2word = path_id2word
         self.path_kneighbor = path_kneighbor
-        self.threshold = threshold
+        self.threshold_ps = threshold_ps
+        self.threshold_ns = threshold_ns
         synset = self.get_synset(self.path_sim_word)
         score = load_from_pkl(self.path_score)
         kneighbor = load_from_pkl(self.path_kneighbor)
         id2word = self.get_id2word(self.path_id2word)
-        ps, ns = self.get_psns(score, id2word, kneighbor, self.threshold)
+        ps, md, ns = self.get_psns(score, id2word, kneighbor, self.threshold_ps, self.threshold_ns)
+        dump_to_pkl(ps, 'data/test/ps_0.01_test.pkl')
+        dump_to_pkl(ns, 'data/test/ns_0.01_test.pkl')
+        dump_to_pkl(md, 'data/sample/md_3_0.2_0.01.pkl')
         f1, precision, recall = self.ps_stat(synset, ps)
         print('precision: %f' % precision)
         print('recall: %f' % recall)
@@ -42,23 +47,38 @@ class PSNS:
         with codecs.open(path, 'r', encoding='utf-8') as f:
             for lines in f:
                 lines = lines.split()
-                id2word[lines[0]] = lines[1]
+                id2word[int(lines[0])] = lines[1]
         return id2word
 
-    def get_psns(self, score, id2word, kneighbor, threshold):
+    def get_psns(self, score, id2word, kneighbor, threshold_ps, threshold_ns):
         ps = dict()
         for id in score.keys():
-            ps[id2word[id]] = []
+            try:
+                ps[id2word[id]] = []
+            except:
+                continue
             for i in range(len(score[id])):
-                if score[id][i] >= threshold:
-                    ps[id2word[id]].append(id2word(kneighbor[id][i]))
+                if score[id][i] >= threshold_ps:
+                    ps[id2word[id]].append(id2word[kneighbor[id][i]])
+        md = dict()
+        for id in score.keys():
+            try:
+                md[id2word[id]] = []
+            except:
+                continue
+            for i in range(len(score[id])):
+                if score[id][i] < threshold_ps and score[id][i] >= threshold_ns:
+                    md[id2word[id]].append(id2word[kneighbor[id][i]])
         ns = dict()
         for id in score.keys():
-            ns[id2word[id]] = []
+            try:
+                ns[id2word[id]] = []
+            except:
+                continue
             for i in range(len(score[id])):
-                if score[id][i] < threshold:
-                    ns[id2word[id]].append(id2word(kneighbor[id][i]))
-        return ps, ns
+                if score[id][i] < threshold_ns:
+                    ns[id2word[id]].append(id2word[kneighbor[id][i]])
+        return ps, md, ns
 
     def ps_stat(self, synset, ps):
         vocab_set = set(ps.keys())
