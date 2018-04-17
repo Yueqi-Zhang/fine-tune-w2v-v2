@@ -18,7 +18,7 @@ def Topfreq(freqence):
     """
     sortd = sorted(freqence.items(), key=lambda x: x[1], reverse=True)
     #sortd = sortd[:10000]
-    tf = [x for x, y in sortd]
+    tf = [[str(x),str(y)] for x, y in sortd]
     return tf
 
 def KNeighbor(file_name, words, word2id, id2word):
