@@ -3,10 +3,12 @@
 
 
 PROCESS_FLAG="preprocess_new.py"
-MAX_PROCESS_NUM=2
+MAX_PROCESS_NUM=10
 
-index_begin=101
+index_begin=1
 index_end=102
+
+output_path="data/pair5/pair_${index}.pkl"
 
 ###########AUTOMATION######################
 
@@ -19,8 +21,8 @@ then
     run_time=0
     while [ $run_time -eq 0 ];
     do
-        if [ ! -f "data/pair/pair_${index}.pkl" ]; then
-            nohup python preprocess_new.py data/corpus/corpus_${index}.0.txt data/wvect.txt data/word2id.txt data/pair/pair_${index}.pkl &>logs/preprocess_${index}.txt &
+        if [ ! -f ${output_path} ]; then
+            nohup python preprocess_new.py data/corpus/corpus_${index}.0.txt data/wvect.txt data/word2id.txt $output_path  &>logs/preprocess_${index}.txt &
             run_time=`expr $run_time + 1`
         fi
         index=`expr $index + 1`
