@@ -31,15 +31,17 @@ class NSselect:
 
         self.topn = topn
         logging.info("get kneighbors...")
-        kneighbor = load_from_pkl(kn_file_name)
-        #kneighbor = KNeighbor(input_wvectors, vocabulary, word2id, id2word)
-        #dump_to_pkl(kneighbor, kn_file_name)
+        #kneighbor = load_from_pkl(kn_file_name)
+        kneighbor = KNeighbor(input_wvectors, vocabulary, word2id, id2word)
+        dump_to_pkl(kneighbor, kn_file_name)
         logging.info("kneightbors got.")
 
         logging.info("get pairs...")
         files = os.listdir(pair_file_path)
         pairs = dict()
         for file in tqdm(files):
+            if file == '.DS_Store':
+                continue
             if not os.path.isdir(file):
                 path = pair_file_path + "/" + file
                 pair = load_from_pkl(path)
