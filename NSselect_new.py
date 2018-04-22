@@ -4,7 +4,9 @@ import os
 from tqdm import tqdm
 import logging
 from utils import load_from_pkl, KNeighbor, dump_to_pkl, logging_set
+import tempfile
 import debugger
+from ExternalSorter import ExternalSorter
 
 class NSselect:
     def __init__(self,
@@ -78,10 +80,16 @@ class NSselect:
     def select_new(self, pairs, kneighbor, topn):
         score = dict()
         logging.info("start sorting...")
-        key_sorted = sorted(pairs.keys(), key=lambda tup: tup[0])
+        #key_sorted = sorted(pairs.keys(), key=lambda tup: tup[0])
+        external_tmp_dir = os.path.join(tempfile.gettempdir(), 'external_sort')
+        if not os.path.isdir(external_tmp_dir):
+            os.makedirs(external_tmp_dir)
+        external_sorter = ExternalSorter(pairs.keys(), key=lambda tup: tup[0], output_path='./data/pairs_keys_sorted.npy',
+                external_tmp_dir=None, nthreads=1, split_size=1000000, nsplits_for_merge=10,
+                tmp_data_reader=None, tmp_data_writer=None)
+        key_sorted = external_sorter.sort()
+
         logging.info("sort length: %d" % len(key_sorted))
-        keys_after_sort_set = set([key[0] for key in key_sorted])
-        logging.info('number of keys after sort: %d' % len(keys_after_sort_set))
         logging.info("sort finished.")
         i = 0
         for keyp in tqdm(key_sorted):
