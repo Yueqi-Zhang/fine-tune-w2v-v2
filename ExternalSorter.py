@@ -147,7 +147,7 @@ class ExternalSorter(object):
             self.tmp_files.append(tmp_path)
             #pool.apply_async(self.single_sort, ("Sort index: %d/%d" % (i, len(self.data)), self.data[i:i+self.split_size], self.key, tmp_path, self.tmp_data_writer))
             #pool.apply(self.single_sort, ("Sort index: %d/%d" % (i, len(self.data)), self.data[i:i+self.split_size], tmp_path))
-            pool.apply(SingleProcessSorter(), ("Sort index: %d/%d" % (i, len(self.data)), self.data[i:i+self.split_size], tmp_path))
+            pool.apply_async(SingleProcessSorter(), ("Sort index: %d/%d" % (i, len(self.data)), self.data[i:i+self.split_size], tmp_path))
             #logging.info("Index: %d/%d finished" % (i, len(self.data)))
 
         pool.close()
@@ -178,8 +178,12 @@ class ExternalSorter(object):
 
     def simple_merge(self):
         tmp_data = []
+        pool = multiprocessing.Pool(processes=self.nthreads)
         for tmp_file in self.tmp_files:
-            tmp_data.append(self.tmp_data_reader(tmp_file))
+            tmp_data.append(pool.apply_async(data_reader, [tmp_file]).get())
+            #tmp_data.append(self.tmp_data_reader(tmp_file))
+        pool.close()
+        pool.join()
         merged_data = heapq.merge(*tmp_data, key=self.key)
         if self.output_path:
             self.tmp_data_writer(list(merged_data), self.output_path)
