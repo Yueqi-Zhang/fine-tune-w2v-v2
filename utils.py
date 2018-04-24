@@ -259,7 +259,23 @@ def load_from_pkl(pkl_path):
 
 def dump_to_pkl(obj, pkl_path):
     with open(pkl_path, 'wb') as fout:
-        pkl.dump(obj, fout)
+        pkl.dump(obj, fout, protocol=pkl.HIGHEST_PROTOCOL)
+
+
+def resplit_pairs(pairs, save_dir, split_num=1000):
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
+    total_len = 0
+    idx = 0
+    pair_items = list(pairs.items())
+    for i in range(0, len(pairs), split_num):
+        sub_pairs = dict(pair_items[i:i + split_num])
+        dump_to_pkl(sub_pairs, os.path.join(save_dir, "%d.pkl" % idx))
+        logging.info(len(sub_pairs))
+        total_len += len(sub_pairs)
+        idx += 1
+    logging.info('total_len: %d' % total_len)
+    assert total_len == len(pairs)
 
 
 if __name__ == "__main__":
