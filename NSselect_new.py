@@ -3,7 +3,7 @@ import sys
 import os
 from tqdm import tqdm
 import logging
-from utils import load_from_pkl, KNeighbor, dump_to_pkl, logging_set
+from utils import load_from_pkl, KNeighbor, dump_to_pkl, logging_set, resplit_pairs
 import tempfile
 import debugger
 from ExternalSorter import ExternalSorter
@@ -59,6 +59,8 @@ class NSselect:
                 logging.info("current total pair size: %d" % (len(pairs)))
         logging.info("pairs got")
 
+        resplit_pairs(pairs, './data/pairs_large_resplit', 1000)
+
         logging.info("len(word2id): %d" % len(word2id))
         keys_before_sort_set = set([key[0] for key in pairs.keys()])
         logging.info("length of pair.keys[0]: %d" % len(keys_before_sort_set))
@@ -85,7 +87,7 @@ class NSselect:
         if not os.path.isdir(external_tmp_dir):
             os.makedirs(external_tmp_dir)
         external_sorter = ExternalSorter(pairs.keys(), key=lambda tup: tup[0], output_path='./data/pairs_keys_sorted.npy',
-                external_tmp_dir=None, nthreads=1, split_size=1000000, nsplits_for_merge=10,
+                external_tmp_dir=None, nthreads=4, split_size=1000000, nsplits_for_merge=10,
                 tmp_data_reader=None, tmp_data_writer=None)
         key_sorted = external_sorter.sort()
 
